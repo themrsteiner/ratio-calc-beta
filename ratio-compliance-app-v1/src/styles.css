@@ -1,0 +1,367 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.appShell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: stretch;
+  padding: 28px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #14213d, #355070);
+  color: #fff;
+  box-shadow: 0 18px 50px rgba(20, 33, 61, 0.25);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #c9d8ff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 0.95;
+}
+
+h2 {
+  margin-bottom: 4px;
+}
+
+.heroText {
+  max-width: 760px;
+  color: #e9efff;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin-bottom: 0;
+}
+
+.heroCard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  padding: 18px;
+  backdrop-filter: blur(10px);
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.metric span {
+  color: #dbe5ff;
+}
+
+.metric strong {
+  font-size: 2rem;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.panel {
+  grid-column: span 6;
+  background: #fff;
+  border: 1px solid #dfe7f3;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(35, 49, 84, 0.08);
+}
+
+.panel.wide {
+  grid-column: 1 / -1;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.panelHeader p {
+  color: #607086;
+  margin: 0;
+}
+
+.formGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.fiveCols {
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: #44536a;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid #c8d4e6;
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #172033;
+}
+
+input:focus,
+select:focus {
+  outline: 3px solid #dce7ff;
+  border-color: #6d8fce;
+}
+
+.buttonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.primaryButton {
+  background: #264ed8;
+  color: #fff;
+}
+
+.secondaryButton {
+  background: #eef3ff;
+  color: #1f3d9c;
+}
+
+.dangerButton {
+  background: #fff0f0;
+  color: #9c1f2c;
+}
+
+.hiddenFile {
+  display: none;
+}
+
+.warningBox {
+  background: #fff8e5;
+  border: 1px solid #efd17a;
+  color: #6d4a00;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  line-height: 1.45;
+}
+
+.warningBox.strong {
+  background: #fff0f0;
+  border-color: #ef8f8f;
+  color: #8a1e1e;
+}
+
+.warningStack {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.warningStack .warningBox {
+  margin-bottom: 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid #dfe7f3;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.dataTable th,
+.dataTable td {
+  border-bottom: 1px solid #e7edf7;
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+.dataTable th {
+  background: #f1f5fb;
+  color: #44536a;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dataTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.dataTable input,
+.dataTable select {
+  min-width: 120px;
+}
+
+.inlineField {
+  display: grid;
+  grid-template-columns: 90px auto;
+  gap: 8px;
+  align-items: center;
+  color: #607086;
+}
+
+.statusRow.compliant,
+.statusRow.overstaffed {
+  background: #edf9f0;
+}
+
+.statusRow.gap {
+  background: #fff0f0;
+}
+
+.statusRow.needsReview,
+.statusRow.noStandards {
+  background: #fff8e5;
+}
+
+.statusRow.noChildren {
+  background: #f7f9fc;
+  color: #607086;
+}
+
+.timelineTable td:first-child {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.standardsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.compactTable th,
+.compactTable td {
+  padding: 7px 8px;
+  font-size: 0.8rem;
+}
+
+.exportButtons {
+  max-width: 620px;
+}
+
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .fiveCols,
+  .standardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeader {
+    flex-direction: column;
+  }
+
+  .buttonRow {
+    justify-content: flex-start;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .appShell {
+    max-width: none;
+    padding: 0;
+  }
+
+  .hero,
+  .panel {
+    box-shadow: none;
+  }
+
+  .buttonRow,
+  .standardsPanel,
+  .panel:nth-of-type(3),
+  .panel:nth-of-type(4) {
+    display: none;
+  }
+}

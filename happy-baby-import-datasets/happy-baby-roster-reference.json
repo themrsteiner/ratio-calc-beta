@@ -1,0 +1,228 @@
+{
+  "note": "Reference only. Use the per-day files for app import.",
+  "agePlaceholder": "manualAgeBucket:eighteenMonthsToThreeYears",
+  "options": {
+    "option-a-rylie-mon-tue-thu": [
+      {
+        "name": "Elliott",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Reese",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Kaia",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Cameron",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Noah",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "McCoy",
+        "days": [
+          "monday",
+          "tuesday",
+          "thursday"
+        ],
+        "arrivalTime": "09:00",
+        "departureTime": "16:00"
+      },
+      {
+        "name": "Andres",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "08:30",
+        "departureTime": "12:30"
+      },
+      {
+        "name": "Nora",
+        "days": [
+          "wednesday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Carol",
+        "days": [
+          "tuesday",
+          "thursday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Rylie",
+        "days": [
+          "monday",
+          "tuesday",
+          "thursday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      }
+    ],
+    "option-b-rylie-mon-wed-fri": [
+      {
+        "name": "Elliott",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Reese",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Kaia",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Cameron",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Noah",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "McCoy",
+        "days": [
+          "monday",
+          "tuesday",
+          "thursday"
+        ],
+        "arrivalTime": "09:00",
+        "departureTime": "16:00"
+      },
+      {
+        "name": "Andres",
+        "days": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday"
+        ],
+        "arrivalTime": "08:30",
+        "departureTime": "12:30"
+      },
+      {
+        "name": "Nora",
+        "days": [
+          "wednesday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Carol",
+        "days": [
+          "tuesday",
+          "thursday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      },
+      {
+        "name": "Rylie",
+        "days": [
+          "monday",
+          "wednesday",
+          "friday"
+        ],
+        "arrivalTime": "07:30",
+        "departureTime": "16:30"
+      }
+    ]
+  }
+}
