@@ -1,5 +1,5 @@
 import { collapseComplianceIntervals } from '../compliance/collapseIntervals';
-import type { ComplianceResult, ScheduleInput } from '../compliance/types';
+import type { ComplianceResult, ScheduleInput, Workspace } from '../compliance/types';
 import { AGE_BUCKET_LABELS } from '../standards/types';
 import { formatTime } from '../time/time';
 
@@ -13,6 +13,33 @@ export function downloadTextFile(filename: string, content: string, mimeType = '
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
+}
+
+export function exportWorkspaceJson(workspace: Workspace): string {
+  return JSON.stringify(
+    {
+      schema: 'ratio-compliance-workspace/v1',
+      exportedAt: new Date().toISOString(),
+      workspace,
+    },
+    null,
+    2,
+  );
+}
+
+export function importWorkspaceJson(json: string): Workspace {
+  const parsed = JSON.parse(json) as { workspace?: Workspace } | Workspace;
+
+  if ('workspace' in parsed && parsed.workspace) {
+    return parsed.workspace;
+  }
+
+  // Fallback for older formats or missing wrapper
+  if ('weeks' in parsed && Array.isArray(parsed.weeks)) {
+    return parsed as Workspace;
+  }
+  
+  throw new Error('Invalid workspace JSON');
 }
 
 export function exportScheduleJson(schedule: ScheduleInput): string {

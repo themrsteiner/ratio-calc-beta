@@ -32,6 +32,17 @@ export type ScheduleInput = {
   standards: RatioStandardSet | null;
 };
 
+export type WeeklySchedule = {
+  id: string;
+  weekName: string;
+  mondayDate: string; // YYYY-MM-DD
+  days: ScheduleInput[]; // 5 days: Mon, Tue, Wed, Thu, Fri
+};
+
+export type Workspace = {
+  weeks: WeeklySchedule[];
+};
+
 export type RequiredCaregiverResult =
   | {
       status: 'noChildren';

@@ -1,21 +1,23 @@
 import { useMemo, useRef, useState } from 'react';
 import { calculateCompliance } from '../core/compliance/calculateCompliance';
 import { collapseComplianceIntervals } from '../core/compliance/collapseIntervals';
-import type { ScheduleInput, StaffEntry, StudentEntry } from '../core/compliance/types';
+import type { ScheduleInput, StaffEntry, StudentEntry, Workspace, WeeklySchedule } from '../core/compliance/types';
 import {
   downloadTextFile,
   exportComplianceCsv,
   exportPrintableHtml,
   exportReadableScript,
   exportScheduleJson,
+  exportWorkspaceJson,
   humanizeRuleLevel,
   humanizeStatus,
   importScheduleJson,
+  importWorkspaceJson,
 } from '../core/export/exporters';
 import { AGE_BUCKET_LABELS, type AgeBucket } from '../core/standards/types';
 import { TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS } from '../core/standards/builtInTexasLicensedChildCareHome';
 import { formatTime } from '../core/time/time';
-import { sampleSchedule } from './sampleSchedule';
+import { createDefaultWeek, sampleSchedule } from './sampleSchedule';
 
 const AGE_BUCKETS: AgeBucket[] = [
   'birthTo17Months',
@@ -23,11 +25,26 @@ const AGE_BUCKETS: AgeBucket[] = [
   'fourYearsAndOlder',
 ];
 
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
 export function RatioComplianceApp() {
-  const [schedule, setSchedule] = useState<ScheduleInput>(sampleSchedule);
+  const [workspace, setWorkspace] = useState<Workspace>(() => ({
+    weeks: [createDefaultWeek(new Date().toISOString().slice(0, 10), 'Week 1')],
+  }));
+  const [activeWeekId, setActiveWeekId] = useState<string>(workspace.weeks[0].id);
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(0);
+  const [syncAcrossDays, setSyncAcrossDays] = useState(true);
+
   const [showStandards, setShowStandards] = useState(false);
   const importRef = useRef<HTMLInputElement | null>(null);
   const standardsImportRef = useRef<HTMLInputElement | null>(null);
+  const workspaceImportRef = useRef<HTMLInputElement | null>(null);
+
+  const activeWeek = useMemo(() => 
+    workspace.weeks.find(w => w.id === activeWeekId) || workspace.weeks[0]
+  , [workspace.weeks, activeWeekId]);
+
+  const schedule = activeWeek.days[activeDayIndex];
 
   const result = useMemo(() => calculateCompliance(schedule), [schedule]);
   const collapsedBlocks = useMemo(
@@ -35,79 +52,269 @@ export function RatioComplianceApp() {
     [result.intervals],
   );
 
-  function patchSchedule(patch: Partial<ScheduleInput>) {
-    setSchedule((current) => ({ ...current, ...patch }));
+  function patchSchedule(patch: Partial<ScheduleInput>, forceAllDays = false) {
+    const shouldSync = syncAcrossDays || forceAllDays;
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      const newDays = [...week.days];
+
+      if (shouldSync) {
+        week.days = newDays.map((day, idx) => {
+          // Don't sync date or name if they are day-specific
+          const filteredPatch = { ...patch };
+          if (idx !== activeDayIndex) {
+            delete filteredPatch.scheduleDate;
+            delete filteredPatch.scheduleName;
+          }
+          return { ...day, ...filteredPatch };
+        });
+      } else {
+        newDays[activeDayIndex] = { ...newDays[activeDayIndex], ...patch };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
   }
 
   function addStudent() {
-    setSchedule((current) => ({
-      ...current,
-      students: [
-        ...current.students,
-        {
-          id: crypto.randomUUID(),
-          label: 'New child/group',
-          count: 1,
-          arrivalTime: current.openTime,
-          departureTime: current.closeTime,
-          ageSource: { type: 'manualAgeBucket', ageBucket: 'fourYearsAndOlder' },
-        },
-      ],
-    }));
+    const newStudent: StudentEntry = {
+      id: crypto.randomUUID(),
+      label: 'New child/group',
+      count: 1,
+      arrivalTime: schedule.openTime,
+      departureTime: schedule.closeTime,
+      ageSource: { type: 'manualAgeBucket', ageBucket: 'fourYearsAndOlder' },
+    };
+
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      
+      if (syncAcrossDays) {
+        week.days = week.days.map(day => ({
+          ...day,
+          students: [...day.students, { ...newStudent }]
+        }));
+      } else {
+        const newDays = [...week.days];
+        newDays[activeDayIndex] = {
+          ...newDays[activeDayIndex],
+          students: [...newDays[activeDayIndex].students, newStudent]
+        };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
   }
 
   function updateStudent(id: string, patch: Partial<StudentEntry>) {
-    setSchedule((current) => ({
-      ...current,
-      students: current.students.map((student) =>
-        student.id === id ? { ...student, ...patch } : student,
-      ),
-    }));
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      
+      if (syncAcrossDays) {
+        week.days = week.days.map(day => ({
+          ...day,
+          students: day.students.map(s => s.id === id ? { ...s, ...patch } : s)
+        }));
+      } else {
+        const newDays = [...week.days];
+        newDays[activeDayIndex] = {
+          ...newDays[activeDayIndex],
+          students: newDays[activeDayIndex].students.map(s => s.id === id ? { ...s, ...patch } : s)
+        };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
   }
 
   function removeStudent(id: string) {
-    setSchedule((current) => ({
-      ...current,
-      students: current.students.filter((student) => student.id !== id),
-    }));
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      
+      if (syncAcrossDays) {
+        week.days = week.days.map(day => ({
+          ...day,
+          students: day.students.filter(s => s.id !== id)
+        }));
+      } else {
+        const newDays = [...week.days];
+        newDays[activeDayIndex] = {
+          ...newDays[activeDayIndex],
+          students: newDays[activeDayIndex].students.filter(s => s.id !== id)
+        };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
   }
 
   function addStaff() {
-    setSchedule((current) => ({
-      ...current,
-      staff: [
-        ...current.staff,
-        {
-          id: crypto.randomUUID(),
-          label: 'New caregiver',
-          count: 1,
-          startTime: current.openTime,
-          endTime: current.closeTime,
-          countsTowardRatio: true,
-        },
-      ],
-    }));
+    const newStaff: StaffEntry = {
+      id: crypto.randomUUID(),
+      label: 'New caregiver',
+      count: 1,
+      startTime: schedule.openTime,
+      endTime: schedule.closeTime,
+      countsTowardRatio: true,
+    };
+
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      
+      if (syncAcrossDays) {
+        week.days = week.days.map(day => ({
+          ...day,
+          staff: [...day.staff, { ...newStaff }]
+        }));
+      } else {
+        const newDays = [...week.days];
+        newDays[activeDayIndex] = {
+          ...newDays[activeDayIndex],
+          staff: [...newDays[activeDayIndex].staff, newStaff]
+        };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
   }
 
   function updateStaff(id: string, patch: Partial<StaffEntry>) {
-    setSchedule((current) => ({
-      ...current,
-      staff: current.staff.map((staff) =>
-        staff.id === id ? { ...staff, ...patch } : staff,
-      ),
-    }));
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      
+      if (syncAcrossDays) {
+        week.days = week.days.map(day => ({
+          ...day,
+          staff: day.staff.map(s => s.id === id ? { ...s, ...patch } : s)
+        }));
+      } else {
+        const newDays = [...week.days];
+        newDays[activeDayIndex] = {
+          ...newDays[activeDayIndex],
+          staff: newDays[activeDayIndex].staff.map(s => s.id === id ? { ...s, ...patch } : s)
+        };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
   }
 
   function removeStaff(id: string) {
-    setSchedule((current) => ({
+    setWorkspace((current) => {
+      const weekIndex = current.weeks.findIndex((w) => w.id === activeWeekId);
+      if (weekIndex === -1) return current;
+
+      const newWeeks = [...current.weeks];
+      const week = { ...newWeeks[weekIndex] };
+      
+      if (syncAcrossDays) {
+        week.days = week.days.map(day => ({
+          ...day,
+          staff: day.staff.filter(s => s.id !== id)
+        }));
+      } else {
+        const newDays = [...week.days];
+        newDays[activeDayIndex] = {
+          ...newDays[activeDayIndex],
+          staff: newDays[activeDayIndex].staff.filter(s => s.id !== id)
+        };
+        week.days = newDays;
+      }
+
+      newWeeks[weekIndex] = week;
+      return { ...current, weeks: newWeeks };
+    });
+  }
+
+  function addWeek() {
+    const lastWeek = workspace.weeks[workspace.weeks.length - 1];
+    const lastDate = new Date(lastWeek.mondayDate);
+    lastDate.setDate(lastDate.getDate() + 7);
+    const newWeek = createDefaultWeek(
+      lastDate.toISOString().slice(0, 10),
+      `Week ${workspace.weeks.length + 1}`
+    );
+    setWorkspace(current => ({
       ...current,
-      staff: current.staff.filter((staff) => staff.id !== id),
+      weeks: [...current.weeks, newWeek]
     }));
+    setActiveWeekId(newWeek.id);
+  }
+
+  function duplicateWeek(weekId: string) {
+    const week = workspace.weeks.find(w => w.id === weekId);
+    if (!week) return;
+
+    const newWeek = {
+      ...week,
+      id: crypto.randomUUID(),
+      weekName: `${week.weekName} (Copy)`,
+      days: week.days.map(day => ({
+        ...day,
+        students: day.students.map(s => ({ ...s })),
+        staff: day.staff.map(s => ({ ...s }))
+      }))
+    };
+
+    setWorkspace(current => ({
+      ...current,
+      weeks: [...current.weeks, newWeek]
+    }));
+    setActiveWeekId(newWeek.id);
+  }
+
+  function removeWeek(weekId: string) {
+    if (workspace.weeks.length <= 1) return;
+    setWorkspace(current => ({
+      ...current,
+      weeks: current.weeks.filter(w => w.id !== weekId)
+    }));
+    if (activeWeekId === weekId) {
+      setActiveWeekId(workspace.weeks.find(w => w.id !== weekId)!.id);
+    }
   }
 
   async function handleImportFile(file: File) {
     const text = await file.text();
-    setSchedule(importScheduleJson(text));
+    const imported = importScheduleJson(text);
+    // For now, importing a single day replaces the active day
+    patchSchedule(imported, false);
   }
 
   async function handleImportStandardsFile(file: File) {
@@ -117,118 +324,225 @@ export function RatioComplianceApp() {
       window.alert('That file does not look like a RatioStandardSet JSON file.');
       return;
     }
-    patchSchedule({ standards });
+    patchSchedule({ standards }, true);
+  }
+
+  async function handleImportWorkspace(file: File) {
+    const text = await file.text();
+    try {
+      const imported = importWorkspaceJson(text);
+      setWorkspace(imported);
+      if (imported.weeks.length > 0) {
+        setActiveWeekId(imported.weeks[0].id);
+        setActiveDayIndex(0);
+      }
+    } catch (e) {
+      window.alert('Failed to import workspace: ' + (e instanceof Error ? e.message : String(e)));
+    }
   }
 
   return (
-    <div className="appShell">
-      <header className="hero">
-        <div>
-          <p className="eyebrow">Ratio Compliance Planner · MVP v0.1</p>
-          <h1>Age-aware caregiver ratio planner</h1>
-          <p className="heroText">
-            Plan child attendance, caregiver schedules, and compliance against loaded
-            standards. Birthday-based age calculation is preferred; manual/grouped age entries are allowed with warnings.
-          </p>
+    <div className="appLayout">
+      <aside className="sidebar">
+        <div className="sidebarHeader">
+          <h3>Weekly schedules</h3>
+          <button className="secondaryButton" onClick={addWeek}>+ Week</button>
         </div>
-        <div className="heroCard">
-          <div className="metric">
-            <span>Max children</span>
-            <strong>{result.summary.maxChildren}</strong>
-          </div>
-          <div className="metric">
-            <span>Gap intervals</span>
-            <strong>{result.summary.gapIntervals}</strong>
-          </div>
-          <div className="metric">
-            <span>Max staff gap</span>
-            <strong>{result.summary.maxStaffGap}</strong>
-          </div>
+        <ul className="weekList">
+          {workspace.weeks.map(week => (
+            <li 
+              key={week.id} 
+              className={activeWeekId === week.id ? 'active' : ''}
+              onClick={() => setActiveWeekId(week.id)}
+            >
+              <div className="weekItemInfo">
+                <span className="weekName">{week.weekName}</span>
+                <span className="weekDate">{week.mondayDate}</span>
+              </div>
+              <div className="weekItemActions">
+                <button 
+                  title="Duplicate" 
+                  onClick={(e) => { e.stopPropagation(); duplicateWeek(week.id); }}
+                >
+                  D
+                </button>
+                <button 
+                  title="Remove" 
+                  className="danger"
+                  onClick={(e) => { e.stopPropagation(); removeWeek(week.id); }}
+                >
+                  &times;
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="sidebarFooter">
+          <button 
+            className="secondaryButton fullWidth"
+            onClick={() => downloadTextFile('workspace.json', exportWorkspaceJson(workspace), 'application/json')}
+          >
+            Export Workspace
+          </button>
+          <button 
+            className="secondaryButton fullWidth"
+            onClick={() => workspaceImportRef.current?.click()}
+          >
+            Import Workspace
+          </button>
+          <input
+            ref={workspaceImportRef}
+            type="file"
+            accept="application/json,.json"
+            className="hiddenFile"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void handleImportWorkspace(file);
+              event.currentTarget.value = '';
+            }}
+          />
         </div>
-      </header>
+      </aside>
 
-      <main className="contentGrid">
-        <section className="panel wide">
-          <div className="panelHeader">
-            <div>
-              <h2>Schedule setup</h2>
-              <p>Schedule date is required for birthday-based age buckets.</p>
+      <div className="appShell">
+        <header className="hero">
+          <div>
+            <p className="eyebrow">Ratio Compliance Planner · MVP v0.1</p>
+            <h1>Age-aware caregiver ratio planner</h1>
+            <p className="heroText">
+              Plan child attendance, caregiver schedules, and compliance against loaded
+              standards. Birthday-based age calculation is preferred.
+            </p>
+          </div>
+          <div className="heroCard">
+            <div className="metric">
+              <span>Max children</span>
+              <strong>{result.summary.maxChildren}</strong>
             </div>
-            <div className="buttonRow">
-              <button
-                type="button"
-                className="secondaryButton"
-                onClick={() => setSchedule(sampleSchedule)}
-              >
-                Reset sample
-              </button>
-              <button
-                type="button"
-                className="secondaryButton"
-                onClick={() => importRef.current?.click()}
-              >
-                Import JSON
-              </button>
-              <input
-                ref={importRef}
-                type="file"
-                accept="application/json,.json"
-                className="hiddenFile"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) void handleImportFile(file);
-                  event.currentTarget.value = '';
-                }}
-              />
+            <div className="metric">
+              <span>Gap intervals</span>
+              <strong>{result.summary.gapIntervals}</strong>
+            </div>
+            <div className="metric">
+              <span>Max staff gap</span>
+              <strong>{result.summary.maxStaffGap}</strong>
             </div>
           </div>
+        </header>
 
-          <div className="formGrid fiveCols">
+        <nav className="dayNav">
+          {WEEKDAYS.map((name, index) => (
+            <button
+              key={name}
+              className={activeDayIndex === index ? 'active' : ''}
+              onClick={() => setActiveDayIndex(index)}
+            >
+              {name}
+            </button>
+          ))}
+          <div className="syncToggle">
             <label>
-              Schedule name
-              <input
-                value={schedule.scheduleName}
-                onChange={(event) => patchSchedule({ scheduleName: event.target.value })}
+              <input 
+                type="checkbox" 
+                checked={syncAcrossDays} 
+                onChange={e => setSyncAcrossDays(e.target.checked)} 
               />
-            </label>
-            <label>
-              Schedule date
-              <input
-                type="date"
-                value={schedule.scheduleDate}
-                onChange={(event) => patchSchedule({ scheduleDate: event.target.value })}
-              />
-            </label>
-            <label>
-              Open
-              <input
-                type="time"
-                value={schedule.openTime}
-                onChange={(event) => patchSchedule({ openTime: event.target.value })}
-              />
-            </label>
-            <label>
-              Close
-              <input
-                type="time"
-                value={schedule.closeTime}
-                onChange={(event) => patchSchedule({ closeTime: event.target.value })}
-              />
-            </label>
-            <label>
-              Increment
-              <select
-                value={schedule.incrementMinutes}
-                onChange={(event) => patchSchedule({ incrementMinutes: Number(event.target.value) })}
-              >
-                <option value={5}>5 min</option>
-                <option value={10}>10 min</option>
-                <option value={15}>15 min</option>
-                <option value={30}>30 min</option>
-              </select>
+              Sync changes across week
             </label>
           </div>
-        </section>
+        </nav>
+
+        <main className="contentGrid">
+          <section className="panel wide">
+            <div className="panelHeader">
+              <div>
+                <h2>Schedule setup: {WEEKDAYS[activeDayIndex]}</h2>
+                <p>Schedule date is required for birthday-based age buckets.</p>
+              </div>
+              <div className="buttonRow">
+                <button
+                  type="button"
+                  className="secondaryButton"
+                  onClick={() => patchSchedule(sampleSchedule, true)}
+                >
+                  Reset sample
+                </button>
+                <button
+                  type="button"
+                  className="secondaryButton"
+                  onClick={() => importRef.current?.click()}
+                >
+                  Import JSON
+                </button>
+                <input
+                  ref={importRef}
+                  type="file"
+                  accept="application/json,.json"
+                  className="hiddenFile"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void handleImportFile(file);
+                    event.currentTarget.value = '';
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="formGrid fiveCols">
+              <label>
+                Week name
+                <input
+                  value={activeWeek.weekName}
+                  onChange={(event) => {
+                    setWorkspace(current => {
+                      const newWeeks = [...current.weeks];
+                      const weekIdx = newWeeks.findIndex(w => w.id === activeWeekId);
+                      if (weekIdx !== -1) {
+                        newWeeks[weekIdx] = { ...newWeeks[weekIdx], weekName: event.target.value };
+                      }
+                      return { ...current, weeks: newWeeks };
+                    });
+                  }}
+                />
+              </label>
+              <label>
+                Schedule date
+                <input
+                  type="date"
+                  value={schedule.scheduleDate}
+                  onChange={(event) => patchSchedule({ scheduleDate: event.target.value })}
+                />
+              </label>
+              <label>
+                Open
+                <input
+                  type="time"
+                  value={schedule.openTime}
+                  onChange={(event) => patchSchedule({ openTime: event.target.value })}
+                />
+              </label>
+              <label>
+                Close
+                <input
+                  type="time"
+                  value={schedule.closeTime}
+                  onChange={(event) => patchSchedule({ closeTime: event.target.value })}
+                />
+              </label>
+              <label>
+                Increment
+                <select
+                  value={schedule.incrementMinutes}
+                  onChange={(event) => patchSchedule({ incrementMinutes: Number(event.target.value) })}
+                >
+                  <option value={5}>5 min</option>
+                  <option value={10}>10 min</option>
+                  <option value={15}>15 min</option>
+                  <option value={30}>30 min</option>
+                </select>
+              </label>
+            </div>
+          </section>
 
         <section className="panel wide standardsPanel">
           <div className="panelHeader">
@@ -433,6 +747,7 @@ export function RatioComplianceApp() {
         </section>
       </main>
     </div>
+  </div>
   );
 }
 
