@@ -77,7 +77,12 @@ function calculateAgeMixForInterval(
       mix[ageBucket] += sanitizeCount(student.count);
 
       const warning = getAgeSourceWarning(student.ageSource, sanitizeCount(student.count));
-      if (warning) warnings.push(`${student.label}: ${warning}`);
+      console.log('Checking student:', student.label, 'Source type:', student.ageSource.type, 'Warning:', warning);
+      if (warning && warning.startsWith('Manual category warning')) {
+        warnings.push(`Manual Age: ${student.label}`);
+      } else if (warning) {
+        warnings.push(`${student.label}: ${warning}`);
+      }
     } catch (error) {
       warnings.push(
         `${student.label}: ${error instanceof Error ? error.message : 'Could not resolve age bucket.'}`,
@@ -128,12 +133,6 @@ function validateSchedule(schedule: ScheduleInput): string[] {
 
   if (!schedule.scheduleDate) {
     warnings.push('A schedule date is required for birthday-based age calculation.');
-  }
-
-  for (const entry of schedule.students) {
-    if (entry.ageSource.type !== 'dateOfBirth') {
-      warnings.push(`${entry.label}: age category is static/manual and will not update automatically in future schedules.`);
-    }
   }
 
   return warnings;

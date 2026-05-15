@@ -1,77 +1,38 @@
 import { TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS } from '../core/standards/builtInTexasLicensedChildCareHome';
-import type { ScheduleInput, WeeklySchedule } from '../core/compliance/types';
+import { RatioScheduleWeek } from '../core/week/types';
+import { createEmptyWeek, createInitialStudentDaySchedule, createInitialStaffDaySchedule } from '../core/week/weekHelpers';
 
-export function createDefaultWeek(mondayDate: string, weekName: string): WeeklySchedule {
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const studentIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
-  const staffIds = [crypto.randomUUID(), crypto.randomUUID()];
-
-  const days: ScheduleInput[] = dayNames.map((name, index) => {
-    const date = new Date(mondayDate);
-    date.setDate(date.getDate() + index);
-    const dateStr = date.toISOString().slice(0, 10);
-
-    return {
-      scheduleName: `${weekName} - ${name}`,
-      scheduleDate: dateStr,
-      openTime: '07:00',
-      closeTime: '18:00',
-      incrementMinutes: 15,
-      standards: TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS,
-      students: [
-        {
-          id: studentIds[0],
-          label: 'Infant A',
-          count: 1,
-          arrivalTime: '07:30',
-          departureTime: '15:30',
-          ageSource: { type: 'dateOfBirth', dateOfBirth: '2025-08-15' },
-        },
-        {
-          id: studentIds[1],
-          label: 'Toddler group',
-          count: 4,
-          arrivalTime: '08:00',
-          departureTime: '16:00',
-          ageSource: { type: 'manualAgeBucket', ageBucket: 'eighteenMonthsToThreeYears' },
-          notes: 'Manual group entry for quick planning.',
-        },
-        {
-          id: studentIds[2],
-          label: 'Pre-K group',
-          count: 6,
-          arrivalTime: '08:30',
-          departureTime: '17:00',
-          ageSource: { type: 'manualAgeBucket', ageBucket: 'fourYearsAndOlder' },
-        },
-      ],
-      staff: [
-        {
-          id: staffIds[0],
-          label: 'Primary caregiver',
-          count: 1,
-          startTime: '07:00',
-          endTime: '18:00',
-          countsTowardRatio: true,
-        },
-        {
-          id: staffIds[1],
-          label: 'Assistant caregiver',
-          count: 1,
-          startTime: '08:30',
-          endTime: '16:30',
-          countsTowardRatio: true,
-        },
-      ],
-    };
+export function createSampleWeek(mondayDate: string, label: string): RatioScheduleWeek {
+  const week = createEmptyWeek(mondayDate, label);
+  week.standards = TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS;
+  
+  const student1Id = crypto.randomUUID();
+  week.students.push({
+    id: student1Id,
+    label: 'Infant A',
+    count: 1,
+    ageSource: { type: 'dateOfBirth', dateOfBirth: '2025-08-15' },
+    days: {
+      monday: [{ isActive: true, arrivalTime: '07:30', departureTime: '15:30' }],
+      tuesday: [{ isActive: true, arrivalTime: '07:30', departureTime: '15:30' }],
+      wednesday: [{ isActive: true, arrivalTime: '07:30', departureTime: '15:30' }],
+      thursday: [{ isActive: true, arrivalTime: '07:30', departureTime: '15:30' }],
+      friday: [{ isActive: true, arrivalTime: '07:30', departureTime: '15:30' }],
+    }
   });
 
-  return {
-    id: crypto.randomUUID(),
-    weekName,
-    mondayDate,
-    days,
-  };
-}
+  const staff1Id = crypto.randomUUID();
+  week.staff.push({
+    id: staff1Id,
+    label: 'Primary Caregiver',
+    days: {
+      monday: [{ isActive: true, startTime: '07:00', endTime: '18:00', countsTowardRatio: true }],
+      tuesday: [{ isActive: true, startTime: '07:00', endTime: '18:00', countsTowardRatio: true }],
+      wednesday: [{ isActive: true, startTime: '07:00', endTime: '18:00', countsTowardRatio: true }],
+      thursday: [{ isActive: true, startTime: '07:00', endTime: '18:00', countsTowardRatio: true }],
+      friday: [{ isActive: true, startTime: '07:00', endTime: '18:00', countsTowardRatio: true }],
+    }
+  });
 
-export const sampleSchedule = createDefaultWeek(new Date().toISOString().slice(0, 10), 'Sample Week').days[0];
+  return week;
+}

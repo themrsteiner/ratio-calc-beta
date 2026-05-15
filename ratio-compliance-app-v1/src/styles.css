@@ -173,6 +173,189 @@ button {
   width: auto;
 }
 
+/* Dashboard Summary Cards */
+.summaryCardContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.summaryGroup h4 {
+  margin-bottom: 8px;
+  color: #607086;
+  font-size: 0.9rem;
+}
+
+.metric strong.alert {
+  color: #d03d3d;
+}
+
+/* Weekly Overview */
+.weekSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.daySummaryCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.daySummaryCard:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.daySummaryCard.active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.daySummaryCard.hasGaps {
+  border-left: 4px solid #ef4444;
+}
+
+.dayName {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.dayMetrics {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.dayStatus {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.hasGaps .dayStatus {
+  color: #ef4444;
+}
+
+/* Weekly Tables */
+.weeklyTable th, .weeklyTable td {
+  padding: 8px;
+}
+
+.smallInput {
+  width: 60px !important;
+}
+
+.dayCell {
+  background: #fdfdfd;
+  border-left: 1px solid #f1f5f9;
+  min-width: 100px;
+}
+
+.dayToggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.dayTimes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dayTimes input {
+  font-size: 0.8rem;
+  padding: 2px 4px;
+}
+
+.ageSourceCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compactInput {
+  font-size: 0.8rem !important;
+  padding: 2px 4px !important;
+}
+
+.compactLabel {
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Aggregate Timeline */
+.aggregateTimeline {
+  margin: 20px 0;
+  height: 120px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.timelineGrid {
+  display: flex;
+  height: 100%;
+  align-items: flex-end;
+}
+
+.timelineInterval {
+  flex: 1;
+  height: 100%;
+  border-right: 1px solid #f1f5f9;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.barStack {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  height: 80%;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.bar {
+  flex: 1;
+  min-width: 4px;
+  border-radius: 2px 2px 0 0;
+}
+
+.childrenBar {
+  background: #3b82f6;
+}
+
+.staffBar {
+  background: #10b981;
+}
+
+.timeLabel {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  font-size: 0.65rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
 @media (max-width: 980px) {
   .appLayout {
     flex-direction: column;
@@ -407,7 +590,7 @@ select:focus {
 .dataTable th,
 .dataTable td {
   border-bottom: 1px solid #e7edf7;
-  padding: 10px;
+  padding: 6px 8px;
   text-align: left;
   vertical-align: middle;
   font-size: 0.9rem;
