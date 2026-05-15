@@ -34,8 +34,6 @@ export function RatioComplianceApp() {
     setActiveWeekId,
     activeDay,
     setActiveDay,
-    syncAcrossDays,
-    setSyncAcrossDays,
     addWeek,
     duplicateWeek,
     removeWeek,
@@ -184,8 +182,6 @@ export function RatioComplianceApp() {
         <DayNavigator 
           activeDay={activeDay}
           onSelectDay={setActiveDay}
-          syncAcrossDays={syncAcrossDays}
-          onToggleSync={setSyncAcrossDays}
         />
 
         <main className="contentGrid">

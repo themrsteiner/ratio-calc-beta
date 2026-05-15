@@ -4,37 +4,20 @@ import { Weekday, WEEKDAYS } from '../../core/week/types';
 interface DayNavigatorProps {
   activeDay: Weekday;
   onSelectDay: (day: Weekday) => void;
-  syncAcrossDays: boolean;
-  onToggleSync: (sync: boolean) => void;
 }
 
-export const DayNavigator: React.FC<DayNavigatorProps> = ({
-  activeDay,
-  onSelectDay,
-  syncAcrossDays,
-  onToggleSync,
-}) => {
+export const DayNavigator: React.FC<DayNavigatorProps> = ({ activeDay, onSelectDay }) => {
   return (
-    <nav className="dayNav">
+    <div className="dayNavigator" style={{ display: 'flex', gap: '8px', padding: '16px 0' }}>
       {WEEKDAYS.map((day) => (
         <button
           key={day}
-          className={activeDay === day ? 'active' : ''}
+          className={activeDay === day ? 'primaryButton' : 'secondaryButton'}
           onClick={() => onSelectDay(day)}
         >
           {day.charAt(0).toUpperCase() + day.slice(1)}
         </button>
       ))}
-      <div className="syncToggle">
-        <label>
-          <input 
-            type="checkbox" 
-            checked={syncAcrossDays} 
-            onChange={e => onToggleSync(e.target.checked)} 
-          />
-          Sync changes across week
-        </label>
-      </div>
-    </nav>
+    </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StudentWeeklySchedule, Weekday, WEEKDAYS } from '../../core/week/types';
 import { AGE_BUCKET_LABELS, AgeBucket } from '../../core/standards/types';
+import { getInitialStudentSchedule } from '../../core/week/weekHelpers';
 import { Modal } from '../components/Modal';
 
 interface WeeklyStudentEditorProps {
@@ -61,6 +62,12 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
     setIsAdding(false);
   };
 
+  const handleAddSchedule = () => {
+    const newId = `Schedule ${Object.keys(editingStudent!.schedules).length + 1}`;
+    const newSchedules = { ...editingStudent!.schedules, [newId]: getInitialStudentSchedule() };
+    onUpdateStudent(editingStudent!.id, { schedules: newSchedules });
+  };
+
   return (
     <section className="panel wide">
       <div className="panelHeader">
@@ -89,10 +96,16 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
             {[...students.filter(s => s.isActive !== false), ...students.filter(s => s.isActive === false)].map((student) => (
               <tr key={student.id} style={{ opacity: student.isActive === false ? 0.5 : 1 }}>
                 <td>{student.label}</td>
-                <td>{student.ageSource.type}</td>
+                <td style={{ fontSize: '0.8rem' }}>
+                  {student.ageSource.type === 'dateOfBirth' 
+                    ? `DOB: ${student.ageSource.dateOfBirth}` 
+                    : student.ageSource.type === 'manualAgeBucket' 
+                      ? AGE_BUCKET_LABELS[student.ageSource.ageBucket as AgeBucket]
+                      : student.ageSource.type}
+                </td>
                 {WEEKDAYS.map(day => (
                   <td key={day} style={{ fontSize: '0.75rem' }}>
-                    {student.days[day].map((sched, idx) => (
+                    {student.schedules[student.activeScheduleId][day].map((sched, idx) => (
                       <div key={idx}>{sched.arrivalTime} - {sched.departureTime}</div>
                     ))}
                   </td>
@@ -162,34 +175,58 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
         {editingStudent && (
           <div className="formGrid">
             <label>Name: <input value={editingStudent.label} onChange={e => onUpdateStudent(editingStudent.id, { label: e.target.value })} /></label>
+            <div style={{ margin: '16px 0', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
+              <h4>Schedules</h4>
+              {Object.keys(editingStudent.schedules).map((id) => (
+                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <input 
+                    type="radio" 
+                    checked={editingStudent.activeScheduleId === id} 
+                    onChange={() => onUpdateStudent(editingStudent.id, { activeScheduleId: id })} 
+                  />
+                  <span style={{ flex: 1 }}>{id}</span>
+                </div>
+              ))}
+              <button className="secondaryButton" onClick={handleAddSchedule}>+ Add Schedule</button>
+            </div>
             <hr />
             {WEEKDAYS.map(day => (
               <div key={day}>
                 <h4>{day.toUpperCase()}</h4>
-                {editingStudent.days[day].map((sched, idx) => (
+                {editingStudent.schedules[editingStudent.activeScheduleId][day].map((sched, idx) => (
                   <div key={idx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                    <button 
+                      className={sched.isActive ? "primaryButton" : "secondaryButton"}
+                      style={{ fontSize: '0.7rem', padding: '2px 8px' }}
+                      onClick={() => {
+                        const newSchedules = { ...editingStudent.schedules };
+                        const newDays = [...newSchedules[editingStudent.activeScheduleId][day]];
+                        newDays[idx] = { ...newDays[idx], isActive: !sched.isActive };
+                        newSchedules[editingStudent.activeScheduleId] = { ...newSchedules[editingStudent.activeScheduleId], [day]: newDays };
+                        onUpdateStudent(editingStudent.id, { schedules: newSchedules });
+                      }}
+                    >
+                      {sched.isActive ? 'Active' : 'Inactive'}
+                    </button>
                     <input type="time" value={sched.arrivalTime} onChange={e => {
-                      const newDays = [...editingStudent.days[day]];
+                      const newSchedules = { ...editingStudent.schedules };
+                      const newDays = [...newSchedules[editingStudent.activeScheduleId][day]];
                       newDays[idx] = { ...newDays[idx], arrivalTime: e.target.value };
-                      onUpdateStudentDay(editingStudent.id, day, newDays);
+                      newSchedules[editingStudent.activeScheduleId] = { ...newSchedules[editingStudent.activeScheduleId], [day]: newDays };
+                      onUpdateStudent(editingStudent.id, { schedules: newSchedules });
                     }} />
                     <input type="time" value={sched.departureTime} onChange={e => {
-                      const newDays = [...editingStudent.days[day]];
+                      const newSchedules = { ...editingStudent.schedules };
+                      const newDays = [...newSchedules[editingStudent.activeScheduleId][day]];
                       newDays[idx] = { ...newDays[idx], departureTime: e.target.value };
-                      onUpdateStudentDay(editingStudent.id, day, newDays);
+                      newSchedules[editingStudent.activeScheduleId] = { ...newSchedules[editingStudent.activeScheduleId], [day]: newDays };
+                      onUpdateStudent(editingStudent.id, { schedules: newSchedules });
                     }} />
-                    <button onClick={() => {
-                      const newDays = editingStudent.days[day].filter((_, i) => i !== idx);
-                      onUpdateStudentDay(editingStudent.id, day, newDays);
-                    }}>&times;</button>
                   </div>
                 ))}
-                <button className="secondaryButton" onClick={() => {
-                  const newDays = [...editingStudent.days[day], { isActive: true, arrivalTime: '08:00', departureTime: '16:00' }];
-                  onUpdateStudentDay(editingStudent.id, day, newDays);
-                }}>+ Time</button>
               </div>
             ))}
+            <button className="primaryButton" onClick={() => setEditingId(null)}>Done</button>
           </div>
         )}
       </Modal>

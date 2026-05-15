@@ -1,4 +1,13 @@
-import { Weekday, RatioScheduleWeek, WEEKDAYS, StudentWeeklySchedule, StudentDaySchedule, StaffWeeklySchedule, StaffDaySchedule } from './types';
+import { 
+  type StudentSchedule, 
+  type Weekday, 
+  type RatioScheduleWeek, 
+  WEEKDAYS, 
+  type StudentWeeklySchedule, 
+  type StudentDaySchedule, 
+  type StaffWeeklySchedule, 
+  type StaffDaySchedule 
+} from './types';
 
 export function getDayDate(mondayDate: string, day: Weekday): string {
   const dayIndex = WEEKDAYS.indexOf(day);
@@ -21,12 +30,15 @@ export function createEmptyWeek(mondayDate: string, label: string): RatioSchedul
   };
 }
 
-export function createInitialStudentDaySchedule(): StudentDaySchedule[] {
-  return [{
-    isActive: true,
-    arrivalTime: '08:00',
-    departureTime: '16:00',
-  }];
+export function getInitialStudentSchedule(): StudentSchedule {
+  return WEEKDAYS.reduce((acc, day) => {
+    acc[day] = [{
+      isActive: true,
+      arrivalTime: '08:00',
+      departureTime: '16:00',
+    }];
+    return acc;
+  }, {} as StudentSchedule);
 }
 
 export function createInitialStaffDaySchedule(): StaffDaySchedule[] {

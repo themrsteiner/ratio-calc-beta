@@ -5,9 +5,11 @@ import {
   Weekday, 
   WEEKDAYS,
   StudentWeeklySchedule,
-  StaffWeeklySchedule
+  StaffWeeklySchedule,
+  type StudentSchedule
 } from '../../core/week/types';
-import { createEmptyWeek, createInitialStudentDaySchedule, createInitialStaffDaySchedule } from '../../core/week/weekHelpers';
+import { createEmptyWeek, getInitialStudentSchedule, createInitialStaffDaySchedule } from '../../core/week/weekHelpers';
+
 import { createSampleWeek } from '../sampleSchedule';
 
 const STORAGE_KEY = 'happyBabyRatioSchedule.loadedWeeks.v1';
@@ -29,7 +31,6 @@ export function useWorkspace() {
 
   const [activeWeekId, setActiveWeekId] = useState<string>(workspace.weeks[0]?.id || '');
   const [activeDay, setActiveDay] = useState<Weekday>('monday');
-  const [syncAcrossDays, setSyncAcrossDays] = useState(true);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
@@ -60,7 +61,7 @@ export function useWorkspace() {
       ...week,
       id: crypto.randomUUID(),
       weekLabel: `${week.weekLabel} (Copy)`,
-      students: week.students.map(s => ({ ...s, days: { ...s.days } })),
+      students: week.students.map(s => ({ ...s, schedules: { ...s.schedules } })),
       staff: week.staff.map(s => ({ ...s, days: { ...s.days } }))
     };
     setWorkspace(current => ({
@@ -82,18 +83,15 @@ export function useWorkspace() {
   }, [activeWeekId, workspace.weeks]);
 
   const addStudent = useCallback(() => {
+    const defaultSchedule = getInitialStudentSchedule();
+    const defaultId = 'default';
     const newStudent: StudentWeeklySchedule = {
       id: crypto.randomUUID(),
       label: 'New child/group',
       count: 1,
       ageSource: { type: 'manualAgeBucket', ageBucket: 'fourYearsAndOlder' },
-      days: {
-        monday: createInitialStudentDaySchedule(),
-        tuesday: createInitialStudentDaySchedule(),
-        wednesday: createInitialStudentDaySchedule(),
-        thursday: createInitialStudentDaySchedule(),
-        friday: createInitialStudentDaySchedule(),
-      }
+      schedules: { [defaultId]: defaultSchedule },
+      activeScheduleId: defaultId
     };
     updateActiveWeek({
       students: [...activeWeek.students, newStudent]
@@ -101,18 +99,19 @@ export function useWorkspace() {
   }, [activeWeek, updateActiveWeek]);
 
   const addBatchStudents = useCallback((names: string[], config: { ageSource: any, arrivalTime: string, departureTime: string }) => {
+    const defaultId = 'default';
     const newStudents: StudentWeeklySchedule[] = names.map(name => ({
       id: crypto.randomUUID(),
       label: name.trim(),
       count: 1,
       ageSource: config.ageSource,
-      days: {
-        monday: [{ isActive: true, arrivalTime: config.arrivalTime, departureTime: config.departureTime }],
-        tuesday: [{ isActive: true, arrivalTime: config.arrivalTime, departureTime: config.departureTime }],
-        wednesday: [{ isActive: true, arrivalTime: config.arrivalTime, departureTime: config.departureTime }],
-        thursday: [{ isActive: true, arrivalTime: config.arrivalTime, departureTime: config.departureTime }],
-        friday: [{ isActive: true, arrivalTime: config.arrivalTime, departureTime: config.departureTime }],
-      }
+      schedules: {
+        [defaultId]: WEEKDAYS.reduce((acc, day) => {
+          acc[day] = [{ isActive: true, arrivalTime: config.arrivalTime, departureTime: config.departureTime }];
+          return acc;
+        }, {} as StudentSchedule)
+      },
+      activeScheduleId: defaultId
     }));
     updateActiveWeek({
       students: [...activeWeek.students, ...newStudents]
@@ -133,20 +132,16 @@ export function useWorkspace() {
       const week = { ...newWeeks[weekIdx] };
       week.students = week.students.map(s => {
         if (s.id !== studentId) return s;
-        const newDays = { ...s.days };
-        if (syncAcrossDays) {
-          WEEKDAYS.forEach(d => {
-            newDays[d] = { ...newDays[d], ...patch };
-          });
-        } else {
-          newDays[day] = { ...newDays[day], ...patch };
-        }
-        return { ...s, days: newDays };
+        const newSchedules = { ...s.schedules };
+        const activeSchedule = { ...newSchedules[s.activeScheduleId] };
+        activeSchedule[day] = activeSchedule[day].map(sched => ({ ...sched, ...patch }));
+        newSchedules[s.activeScheduleId] = activeSchedule;
+        return { ...s, schedules: newSchedules };
       });
       newWeeks[weekIdx] = week;
       return { ...current, weeks: newWeeks };
     });
-  }, [activeWeekId, syncAcrossDays]);
+  }, [activeWeekId]);
 
   const removeStudent = useCallback((studentId: string) => {
     updateActiveWeek({
@@ -186,19 +181,13 @@ export function useWorkspace() {
       week.staff = week.staff.map(s => {
         if (s.id !== staffId) return s;
         const newDays = { ...s.days };
-        if (syncAcrossDays) {
-          WEEKDAYS.forEach(d => {
-            newDays[d] = { ...newDays[d], ...patch };
-          });
-        } else {
-          newDays[day] = { ...newDays[day], ...patch };
-        }
+        newDays[day] = newDays[day].map(sched => ({ ...sched, ...patch }));
         return { ...s, days: newDays };
       });
       newWeeks[weekIdx] = week;
       return { ...current, weeks: newWeeks };
     });
-  }, [activeWeekId, syncAcrossDays]);
+  }, [activeWeekId]);
 
   const removeStaff = useCallback((staffId: string) => {
     updateActiveWeek({
@@ -214,8 +203,6 @@ export function useWorkspace() {
     setActiveWeekId,
     activeDay,
     setActiveDay,
-    syncAcrossDays,
-    setSyncAcrossDays,
     addWeek,
     duplicateWeek,
     removeWeek,

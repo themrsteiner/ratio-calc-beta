@@ -16,12 +16,15 @@ export type StudentDaySchedule = DayTimeRange & {
   note?: string;
 };
 
+export type StudentSchedule = Record<Weekday, StudentDaySchedule[]>;
+
 export type StudentWeeklySchedule = {
   id: string;
   label: string;
   count: number;
   ageSource: AgeSource;
-  days: Record<Weekday, StudentDaySchedule[]>;
+  schedules: Record<string, StudentSchedule>;
+  activeScheduleId: string;
   notes?: string;
   isActive?: boolean;
 };

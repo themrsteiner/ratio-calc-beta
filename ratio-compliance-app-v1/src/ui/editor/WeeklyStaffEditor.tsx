@@ -30,9 +30,7 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
           <h2>Caregiver schedule (Weekly)</h2>
           <p>Manage caregiver hours across the entire week.</p>
         </div>
-        <button type="button" className="primaryButton" onClick={onAddStaff}>
-          Add caregiver
-        </button>
+        <button type="button" className="primaryButton" onClick={onAddStaff}>+</button>
       </div>
 
       <div className="tableWrap">
@@ -100,19 +98,11 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                         onUpdateStaffDay(editingStaff.id, day, newDays);
                       }}>&times;</button>
                     </div>
-                    <label className="compactLabel"><input type="checkbox" checked={sched.countsTowardRatio} onChange={e => {
-                      const newDays = [...editingStaff.days[day]];
-                      newDays[idx] = { ...newDays[idx], countsTowardRatio: e.target.checked };
-                      onUpdateStaffDay(editingStaff.id, day, newDays);
-                    }} /> Ratio?</label>
                   </div>
                 ))}
-                <button className="secondaryButton" onClick={() => {
-                  const newDays = [...editingStaff.days[day], { isActive: true, startTime: '07:00', endTime: '18:00', countsTowardRatio: true }];
-                  onUpdateStaffDay(editingStaff.id, day, newDays);
-                }}>+ Time</button>
               </div>
             ))}
+            <button className="primaryButton" onClick={() => setEditingId(null)}>Done</button>
           </div>
         )}
       </Modal>

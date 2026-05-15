@@ -20,7 +20,10 @@ export function buildDailyScheduleFromWeek(
   // Filter and map students active on this day
   const dailyStudents: StudentEntry[] = [];
   week.students.filter(s => s.isActive !== false).forEach((s) => {
-    s.days[day].forEach((schedule) => {
+    const activeSchedule = s.schedules[s.activeScheduleId];
+    if (!activeSchedule) return;
+
+    activeSchedule[day].forEach((schedule: any) => {
       if (schedule.isActive) {
         dailyStudents.push({
           id: `${s.id}-${schedule.arrivalTime}`,
