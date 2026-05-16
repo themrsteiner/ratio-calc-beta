@@ -37,31 +37,31 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({ isOp
         </p>
       </div>
       
-      <table className="dataTable" style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className="dataTable">
         <thead>
           <tr>
-            <th style={{ fontSize: '0.75rem', padding: '8px' }}>Student</th>
-            <th style={{ fontSize: '0.75rem', padding: '8px' }}>Age Category</th>
-            <th style={{ fontSize: '0.75rem', padding: '8px' }}>Birthday (Optional)</th>
+            <th>Student</th>
+            <th>Age Category</th>
+            <th>Birthday (Optional)</th>
           </tr>
         </thead>
         <tbody>
           {students.map(s => (
-            <tr key={s.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '8px', fontSize: '0.9rem' }}>{s.label}</td>
-              <td style={{ padding: '4px' }}>
+            <tr key={s.id}>
+              <td>{s.label}</td>
+              <td>
                 <select 
-                  style={{ fontSize: '0.8rem', padding: '4px', width: '100%' }}
+                  style={{ width: '100%' }}
                   value={buckets[s.id] || (s.ageSource.type === 'manualAgeBucket' ? s.ageSource.ageBucket : '')}
                   onChange={e => setBuckets({...buckets, [s.id]: e.target.value as AgeBucket})}
                 >
                   {AGE_BUCKETS.map(b => <option key={b} value={b}>{AGE_BUCKET_LABELS[b]}</option>)}
                 </select>
               </td>
-              <td style={{ padding: '4px' }}>
+              <td>
                 <input 
                   type="date" 
-                  style={{ fontSize: '0.8rem', padding: '4px', width: '100%' }}
+                  style={{ width: '100%' }}
                   onChange={e => setDobs({...dobs, [s.id]: e.target.value})} 
                 />
               </td>

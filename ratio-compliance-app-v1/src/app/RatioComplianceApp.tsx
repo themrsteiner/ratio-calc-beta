@@ -22,6 +22,7 @@ import { TexasStandardsTable } from '../ui/dashboard/TexasStandardsTable';
 import { AgeVerificationModal } from '../ui/dashboard/AgeVerificationModal';
 import { CollapsedIntervalTable } from '../ui/dashboard/CollapsedIntervalTable';
 import { Modal } from '../ui/components/Modal';
+import { PanelToggle } from '../ui/components/PanelToggle';
 
 import { createSampleWeek } from './sampleSchedule';
 
@@ -40,9 +41,9 @@ function CollapsibleSection({
     <section className="panel wide">
       <div className="panelHeader" style={{ marginBottom: isOpen ? '16px' : 0 }}>
         <h2>{title}</h2>
-        <button className="secondaryButton" type="button" onClick={onToggle}>
-          {isOpen ? '▾' : '▸'}
-        </button>
+        <div className="headerActions">
+          <PanelToggle isOpen={isOpen} onToggle={onToggle} />
+        </div>
       </div>
       {isOpen && children}
     </section>
@@ -97,6 +98,34 @@ export function RatioComplianceApp() {
 
   const [verifiedWarnings, setVerifiedWarnings] = useState<boolean>(false);
   const [isHeaderEditModalOpen, setIsHeaderEditModalOpen] = useState<boolean>(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [pendingStandards, setPendingStandards] = useState<any>(null);
+  const [isStandardsConfirmModalOpen, setIsStandardsConfirmModalOpen] = useState(false);
+  const [hasConfirmedStandards, setHasConfirmedStandards] = useState(false);
+
+  const initiateStandardSelection = (standards: any) => {
+    if (!standards) {
+      updateActiveWeek({ standards: null });
+      return;
+    }
+    // If clicking what's already active, toggle it off
+    if (activeWeek.standards?.id === standards.id) {
+      updateActiveWeek({ standards: null });
+      return;
+    }
+    setPendingStandards(standards);
+    setHasConfirmedStandards(false);
+    setIsStandardsConfirmModalOpen(true);
+  };
+
+  const handleConfirmStandards = () => {
+    if (hasConfirmedStandards && pendingStandards) {
+      updateActiveWeek({ standards: pendingStandards });
+      setIsStandardsConfirmModalOpen(false);
+      setPendingStandards(null);
+    }
+  };
+
   const [openSections, setOpenSections] = useState({
     complianceDashboard: true,
     students: true,
@@ -126,8 +155,6 @@ export function RatioComplianceApp() {
 
   const activeDayResult = dailyResults[activeDay];
   const isHourInterval = (startTime: string) => Number(startTime.split(':')[1] ?? '0') === 0;
-  const hourColumnSolidDark = 'rgba(148, 163, 184, 0.22)';
-  const rowThreeAlertShade = 'rgba(249, 115, 22, 0.16)';
   console.log('Daily Warnings:', activeDayResult.warnings);
   const weekSummary = useMemo(() => summarizeWeek(daySummaries), [daySummaries]);
   const weeklyPeakHeights = useMemo(() => {
@@ -202,15 +229,182 @@ export function RatioComplianceApp() {
         students={unverifiedStudents}
         onVerify={handleVerify}
       />
-      <WeekManager 
-        workspace={workspace}
-        activeWeekId={activeWeekId}
-        onSelectWeek={setActiveWeekId}
-        onAddWeek={addWeek}
-        onDuplicateWeek={duplicateWeek}
-        onRemoveWeek={removeWeek}
-        onToggleWeekArchived={toggleWeekArchived}
-      />
+
+      <Modal 
+        isOpen={isStandardsConfirmModalOpen} 
+        onClose={() => setIsStandardsConfirmModalOpen(false)} 
+        title="Standards Disclaimer & Confirmation"
+      >
+        <div className="warningBox" style={{ fontSize: '0.88rem', marginBottom: '24px' }}>
+          <p><strong>Please Read Carefully:</strong></p>
+          <p>This application is a planning and tracking utility intended for informational purposes only. While we strive for accuracy, regulatory data may be outdated, incomplete, or incorrectly interpreted. This tool does not provide legal advice and is not an official government service.</p>
+          <p>You are solely responsible for ensuring your facility complies with all applicable local, state, and federal laws and licensing requirements. Always consult your licensing representative or official government documentation for final compliance decisions.</p>
+        </div>
+        
+        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #dfe7f3' }}>
+          <input 
+            type="checkbox" 
+            checked={hasConfirmedStandards} 
+            onChange={(e) => setHasConfirmedStandards(e.target.checked)} 
+            style={{ width: '20px', height: '20px' }}
+          />
+          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#172033' }}>
+            I have read and understand this disclaimer and I am responsible for my own compliance.
+          </span>
+        </label>
+
+        <div style={{ marginTop: '24px', textAlign: 'right' }}>
+          <button 
+            className="primaryButton" 
+            disabled={!hasConfirmedStandards}
+            onClick={handleConfirmStandards}
+            style={{ opacity: hasConfirmedStandards ? 1 : 0.5 }}
+          >
+            Accept & Apply Standards
+          </button>
+        </div>
+      </Modal>
+
+      <button className="globalFab" onClick={() => setIsDrawerOpen(true)} title="Settings & Actions">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ width: '20px', height: '2px', background: '#fff', borderRadius: '1px' }} />
+          <div style={{ width: '20px', height: '2px', background: '#fff', borderRadius: '1px' }} />
+          <div style={{ width: '20px', height: '2px', background: '#fff', borderRadius: '1px' }} />
+        </div>
+      </button>
+
+      <div className={`drawerOverlay ${isDrawerOpen ? 'open' : ''}`} onClick={() => setIsDrawerOpen(false)} />
+      
+      <aside className={`sideDrawer ${isDrawerOpen ? 'open' : ''}`}>
+        <div className="drawerHeader" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ margin: 0 }}>Menu</h3>
+          <button 
+            className="secondaryButton" 
+            onClick={() => setIsDrawerOpen(false)}
+            style={{ width: '32px', height: '32px', padding: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            &times;
+          </button>
+        </div>
+        <div className="drawerContent">
+          <div className="drawerSection navigator">
+            <div className="drawerSectionHeader">
+              <h4>Weekly Schedules</h4>
+              <button
+                className="secondaryButton"
+                style={{ width: '28px', height: '28px', padding: 0, borderRadius: '50%', fontSize: '1.2rem', lineHeight: 1 }}
+                onClick={() => {
+                  const nextMon = new Date();
+                  nextMon.setDate(nextMon.getDate() + ((1 + 7 - nextMon.getDay()) % 7));
+                  addWeek(nextMon.toISOString().slice(0, 10), `Week ${workspace.weeks.length + 1}`);
+                }}
+              >
+                +
+              </button>
+            </div>
+            <ul className="drawerWeekList">
+              {[
+                ...workspace.weeks.filter((w) => !w.isArchived),
+                ...workspace.weeks.filter((w) => w.isArchived),
+              ].map((week) => (
+                <li
+                  key={week.id}
+                  className={`drawerWeekItem ${activeWeekId === week.id ? 'active' : ''} ${week.isArchived ? 'archived' : ''}`}
+                  onClick={() => {
+                    setActiveWeekId(week.id);
+                    setIsDrawerOpen(false);
+                  }}
+                >
+                  <div className="drawerWeekInfo">
+                    <span className="drawerWeekName">{week.weekLabel}</span>
+                    <span className="drawerWeekDate">{week.weekStartDate}</span>
+                  </div>
+                  <div className="drawerWeekActions">
+                    <button
+                      title={week.isArchived ? 'Unarchive' : 'Archive'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWeekArchived(week.id);
+                      }}
+                    >
+                      {week.isArchived ? 'U' : 'A'}
+                    </button>
+                    <button
+                      title="Duplicate"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateWeek(week.id);
+                      }}
+                    >
+                      D
+                    </button>
+                    <button
+                      title="Remove"
+                      className="danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm('Are you sure you want to remove this week?')) {
+                          removeWeek(week.id);
+                        }
+                      }}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="drawerSection">
+            <h4>App Settings</h4>
+            <div className="formGrid">
+              <label>Time Format</label>
+              <div className="toggleGroup">
+                <div 
+                  className={`toggleOption ${(!workspace.timeFormat || workspace.timeFormat === '12h') ? 'active' : ''}`}
+                  onClick={() => setWorkspace({ ...workspace, timeFormat: '12h' })}
+                >
+                  AM/PM
+                </div>
+                <div 
+                  className={`toggleOption ${workspace.timeFormat === '24h' ? 'active' : ''}`}
+                  onClick={() => setWorkspace({ ...workspace, timeFormat: '24h' })}
+                >
+                  Military
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="drawerSection">
+            <h4>Data Management</h4>
+            <div className="formGrid">
+              <button 
+                className="secondaryButton fullWidth"
+                onClick={() => {
+                  handleExportWorkspace();
+                  setIsDrawerOpen(false);
+                }}
+              >
+                Export Workspace
+              </button>
+              <button 
+                className="secondaryButton fullWidth"
+                onClick={() => {
+                  handleImportWorkspace();
+                  setIsDrawerOpen(false);
+                }}
+              >
+                Import Workspace
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="drawerFooter">
+          Happy Baby Ratio Tracker v1.0
+        </div>
+      </aside>
 
       <div className="appShell">
         <main className="contentGrid">
@@ -218,8 +412,7 @@ export function RatioComplianceApp() {
             daySummaries={daySummaries}
             activeDay={activeDay}
             onSelectDay={setActiveDay}
-            weekLabel={activeWeek.weekLabel}
-            weekStartDate={activeWeek.weekStartDate}
+            activeWeek={activeWeek}
             onUpdateWeekLabel={(label) => updateActiveWeek({ weekLabel: label })}
             onEditSettings={() => setIsHeaderEditModalOpen(true)}
           />
@@ -279,44 +472,29 @@ export function RatioComplianceApp() {
              </div>
             )}
 
-            <div className="tableWrap" style={{ position: 'relative', border: 'none' }}>
-              <table className="dataTable miniTimelineTable" style={{ borderCollapse: 'collapse', borderSpacing: 0, background: 'transparent' }}>
-                <tbody style={{ background: 'transparent' }}>
-                  <tr style={{ background: 'transparent' }}>
-                    <td style={{ width: '28px', verticalAlign: 'middle', textAlign: 'center', paddingTop: 0, background: 'transparent' }}>
-                      <div style={{ fontSize: '0.6rem', lineHeight: 1.1, color: '#475569', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                        <div>Students</div>
-                      </div>
+            <div className="miniTimelineContainer">
+              <table className="miniTimelineTable">
+                <tbody>
+                  <tr>
+                    <td className="miniTimelineLabelCell">
+                      <div className="miniTimelineLabel">Students</div>
                     </td>
-                    <td style={{ height: `${studentsRowHeight}px`, background: 'transparent' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+                    <td style={{ height: `${studentsRowHeight}px` }}>
+                      <div className="miniTimelineBarContainer">
                         {activeDayResult.intervals.map((interval: ComplianceInterval, idx: number) => (
                           <div
                             key={idx}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'flex-end',
-                              height: '100%',
-                              background: isHourInterval(interval.startTime) ? hourColumnSolidDark : 'transparent',
-                            }}
+                            className={`miniTimelineInterval ${isHourInterval(interval.startTime) ? 'hourMarker' : ''}`}
                           >
-                            <div style={{ display: 'flex', flexDirection: 'column-reverse', gap: '2px', alignItems: 'center', justifyContent: 'flex-end', padding: '2px 0' }}>
+                            <div className="miniTimelineDotStack">
                               {Array.from({ length: interval.totalChildren }).map((_, i) => {
-                                const isCompliant = interval.status === 'compliant' || interval.status === 'overstaffed';
+                                const isCompliant = !activeWeek.standards || interval.status === 'compliant' || interval.status === 'overstaffed';
                                 const coveredCount = isCompliant ? interval.totalChildren : interval.scheduledCaregivers * 5;
                                 const isCovered = i < coveredCount;
                                 return (
                                   <div
                                     key={i}
-                                    style={{
-                                      width: '12px',
-                                      height: '12px',
-                                      border: isCovered ? '1.5px solid #60a5fa' : '1.5px solid #f97316',
-                                      background: isCovered ? '#60a5fa' : 'transparent',
-                                      borderRadius: '9999px',
-                                    }}
+                                    className={`dot student ${isCovered ? 'active' : 'alert'}`}
                                   />
                                 );
                               })}
@@ -326,37 +504,24 @@ export function RatioComplianceApp() {
                       </div>
                     </td>
                   </tr>
-                  <tr style={{ background: 'transparent' }}>
-                    <td style={{ width: '28px', verticalAlign: 'middle', textAlign: 'center', paddingTop: 0, background: 'transparent', borderBottomColor: '#94a3b8' }}>
-                      <div style={{ fontSize: '0.6rem', lineHeight: 1.1, color: '#475569', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Caregivers</div>
+                  <tr>
+                    <td className="miniTimelineLabelCell">
+                      <div className="miniTimelineLabel">Staff</div>
                     </td>
-                    <td style={{ height: `${caregiversRowHeight}px`, background: 'transparent', borderBottomColor: '#94a3b8' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', height: '100%' }}>
+                    <td style={{ height: `${caregiversRowHeight}px` }}>
+                      <div className="miniTimelineBarContainer">
                         {activeDayResult.intervals.map((interval: ComplianceInterval, idx: number) => (
                           <div
                             key={idx}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'flex-end',
-                              height: '100%',
-                              background: isHourInterval(interval.startTime) ? hourColumnSolidDark : 'transparent',
-                            }}
+                            className={`miniTimelineInterval ${isHourInterval(interval.startTime) ? 'hourMarker' : ''}`}
                           >
-                            <div style={{ display: 'flex', flexDirection: 'column-reverse', gap: '2px', alignItems: 'center', justifyContent: 'flex-end', padding: '2px 0' }}>
-                              {Array.from({ length: interval.required.requiredCaregivers ?? 0 }).map((_, i) => {
+                            <div className="miniTimelineDotStack">
+                              {Array.from({ length: activeWeek.standards ? (interval.required.requiredCaregivers ?? 0) : interval.scheduledCaregivers }).map((_, i) => {
                                 const isScheduled = i < interval.scheduledCaregivers;
                                 return (
                                   <div
                                     key={i}
-                                    style={{
-                                      width: '12px',
-                                      height: '12px',
-                                      border: isScheduled ? '1.5px solid #16a34a' : '1.5px solid #f97316',
-                                      background: isScheduled ? '#16a34a' : 'transparent',
-                                      borderRadius: '2px',
-                                    }}
+                                    className={`dot staff ${isScheduled ? 'active' : 'alert'}`}
                                   />
                                 );
                               })}
@@ -366,34 +531,22 @@ export function RatioComplianceApp() {
                       </div>
                     </td>
                   </tr>
-                  <tr style={{ background: 'transparent' }}>
-                    <td style={{ width: '28px', borderBottom: 'none', paddingBottom: 0, background: 'transparent' }}>&nbsp;</td>
-                    <td style={{ height: '30px', borderBottom: 'none', paddingBottom: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', height: '100%' }}>
+                  <tr>
+                    <td>&nbsp;</td>
+                    <td style={{ height: '20px' }}>
+                      <div className="miniTimelineBarContainer">
                         {activeDayResult.intervals.map((interval: ComplianceInterval, idx: number) => {
-                          const parts = interval.startTime.split(':');
-                          const minute = Number(parts[1] ?? '0');
-                          const isExactHour = minute === 0;
+                          const isAlert = !!activeWeek.standards && ((interval.totalChildren > (interval.status === 'compliant' || interval.status === 'overstaffed' ? interval.totalChildren : interval.scheduledCaregivers * 5)) ||
+                                          ((interval.required.requiredCaregivers ?? 0) > interval.scheduledCaregivers));
                           return (
                             <div
                               key={idx}
-                              style={{
-                                flex: 1,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'flex-start',
-                                height: '100%',
-                                background:
-                                  (interval.totalChildren > (interval.status === 'compliant' || interval.status === 'overstaffed' ? interval.totalChildren : interval.scheduledCaregivers * 5)) ||
-                                  ((interval.required.requiredCaregivers ?? 0) > interval.scheduledCaregivers)
-                                    ? rowThreeAlertShade
-                                    : 'transparent',
-                              }}
+                              className={`miniTimelineInterval ${isAlert ? 'alertShade' : ''}`}
                             >
                               <div
                                 style={{
                                   width: '1px',
-                                  height: isExactHour ? '14px' : '8px',
+                                  height: isHourInterval(interval.startTime) ? '14px' : '8px',
                                   background: '#94a3b8',
                                 }}
                               />
@@ -403,24 +556,14 @@ export function RatioComplianceApp() {
                       </div>
                     </td>
                   </tr>
-                  <tr style={{ background: 'transparent' }}>
-                    <td style={{ width: '28px', borderTop: 'none', paddingTop: 0, background: 'transparent' }}>&nbsp;</td>
-                    <td style={{ height: '30px', borderTop: 'none', paddingTop: 0, background: 'transparent' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', height: '100%' }}>
+                  <tr>
+                    <td>&nbsp;</td>
+                    <td style={{ height: '20px' }}>
+                      <div className="miniTimelineBarContainer">
                         {activeDayResult.intervals.map((interval: ComplianceInterval, idx: number) => (
-                          <div
-                            key={idx}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'flex-start',
-                              lineHeight: 1,
-                              background: 'transparent',
-                            }}
-                          >
+                          <div key={idx} className="miniTimelineInterval">
                             {isHourInterval(interval.startTime) && (
-                              <span style={{ fontSize: '0.65rem', color: '#64748b', lineHeight: 1 }}>
+                              <span style={{ fontSize: '0.65rem', color: '#64748b' }}>
                                 {formatTime(interval.startTime)}
                               </span>
                             )}
@@ -464,47 +607,79 @@ export function RatioComplianceApp() {
             isOpen={openSections.standards}
             onToggle={() => toggleSection('standards')}
           >
-            <TexasStandardsTable />
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '0.82rem', color: '#8a1e1e', fontWeight: 600, background: '#fff0f0', padding: '8px 12px', borderRadius: '10px', marginBottom: '16px' }}>
+                ⚠️ Always verify ratio requirements with your official licensing or government agency. Regulations change frequently.
+              </p>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+                  Step 1: Select State
+                </label>
+                <div className="toggleGroup" style={{ maxWidth: '600px' }}>
+                  <div 
+                    className={`toggleOption ${!activeWeek.standards ? 'active' : ''}`}
+                    onClick={() => initiateStandardSelection(null)}
+                  >
+                    None
+                  </div>
+                  <div 
+                    className={`toggleOption ${activeWeek.standards?.jurisdiction === 'Texas' ? 'active' : ''}`}
+                    onClick={() => initiateStandardSelection(TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS)}
+                  >
+                    Texas
+                  </div>
+                  <div className="toggleOption disabled">
+                    California <span className="comingSoonBadge">Soon</span>
+                  </div>
+                  <div className="toggleOption disabled">
+                    Florida <span className="comingSoonBadge">Soon</span>
+                  </div>
+                </div>
+              </div>
+
+              {activeWeek.standards?.jurisdiction === 'Texas' && (
+                <div style={{ marginBottom: '16px', paddingLeft: '12px', borderLeft: '3px solid #eef3ff' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+                    Step 2: Select Facility Type in Texas
+                  </label>
+                  <div className="toggleGroup" style={{ maxWidth: '600px' }}>
+                    <div 
+                      className={`toggleOption ${activeWeek.standards?.id === TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS.id ? 'active' : ''}`}
+                      onClick={() => initiateStandardSelection(TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS)}
+                    >
+                      Licensed Home
+                    </div>
+                    <div className="toggleOption disabled">
+                      Child Care Center <span className="comingSoonBadge">Soon</span>
+                    </div>
+                    <div className="toggleOption disabled">
+                      School-Age Program <span className="comingSoonBadge">Soon</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!activeWeek.standards ? (
+                <div style={{ marginTop: '16px', color: '#64748b', fontSize: '0.85rem', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                  No standards selected. Automated compliance alerts are disabled. Select a state and facility type above to start tracking ratios.
+                </div>
+              ) : (
+                <div style={{ marginTop: '16px', color: '#264ed8', fontWeight: 600, fontSize: '0.85rem', padding: '0 4px' }}>
+                  ✓ Currently applying: {activeWeek.standards.jurisdiction} — {activeWeek.standards.facilityType}
+                </div>
+              )}
+            </div>
+            {activeWeek.standards?.id === TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS.id && <TexasStandardsTable />}
           </CollapsibleSection>
 
-          <CollapsibleSection
-            title="Settings"
-            isOpen={openSections.settingsSecondary}
-            onToggle={() => toggleSection('settingsSecondary')}
-          >
-            <div className="formGrid" style={{ maxWidth: '360px' }}>
-              <label>
-                Time Format
-                <select
-                  value={workspace.timeFormat || '12h'}
-                  onChange={(e) => setWorkspace({ ...workspace, timeFormat: e.target.value as '12h' | '24h' })}
-                >
-                  <option value="12h">AM/PM</option>
-                  <option value="24h">Military (24h)</option>
-                </select>
-              </label>
-              <button 
-                className="primaryButton"
-                onClick={() => updateActiveWeek({ standards: TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS })}
-              >
-                Load Texas Standards
-              </button>
-              <button 
-                className="secondaryButton"
-                onClick={handleExportWorkspace}
-              >
-                Export Workspace
-              </button>
-              <button 
-                className="secondaryButton"
-                onClick={handleImportWorkspace}
-              >
-                Import Workspace
-              </button>
-            </div>
-          </CollapsibleSection>
-        </main>
-      </div>
+          <div className="warningBox" style={{ gridColumn: '1 / -1', marginTop: '32px', fontSize: '0.8rem', opacity: 0.85 }}>
+            <p style={{ margin: 0 }}>
+              <strong>Disclaimer:</strong> This application is a planning and tracking utility intended for informational purposes only. While we strive for accuracy, regulatory data may be outdated, incomplete, or incorrectly interpreted. This tool does not provide legal advice and is not an official government service. You are solely responsible for ensuring your facility complies with all applicable local, state, and federal laws and licensing requirements. Always consult your licensing representative or official government documentation for final compliance decisions.
+            </p>
+          </div>
+          </main>
+          </div>
     </div>
   );
 }

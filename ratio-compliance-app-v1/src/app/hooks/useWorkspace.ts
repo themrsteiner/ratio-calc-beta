@@ -12,6 +12,8 @@ import { createEmptyWeek, getInitialStudentSchedule, createInitialStaffDaySchedu
 
 import { createSampleWeek } from '../sampleSchedule';
 
+import { TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS } from '../../core/standards/builtInTexasLicensedChildCareHome';
+
 const STORAGE_KEY = 'happyBabyRatioSchedule.loadedWeeks.v1';
 
 export function useWorkspace() {
@@ -19,7 +21,15 @@ export function useWorkspace() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Migration: Ensure all weeks have standards if they were previously null
+        if (parsed.weeks) {
+          parsed.weeks = parsed.weeks.map((w: RatioScheduleWeek) => ({
+            ...w,
+            standards: w.standards || TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS
+          }));
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse stored workspace', e);
       }

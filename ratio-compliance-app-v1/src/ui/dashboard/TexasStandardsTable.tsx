@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS } from '../../core/standards/builtInTexasLicensedChildCareHome';
+import { PanelToggle } from '../components/PanelToggle';
 
 export const TexasStandardsTable: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="panel wide">
-      <div className="panelHeader" style={{ cursor: 'pointer', marginBottom: isExpanded ? '16px' : 0 }} onClick={() => setIsExpanded(!isExpanded)}>
-        <h2>{TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS.label} {isExpanded ? '▲' : '▼'}</h2>
+      <div className="panelHeader" style={{ marginBottom: isExpanded ? '16px' : 0 }}>
+        <h2>{TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS.label}</h2>
+        <div className="headerActions">
+          <PanelToggle isOpen={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
+        </div>
       </div>
 
       {isExpanded && (

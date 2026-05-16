@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StaffWeeklySchedule, Weekday, WEEKDAYS } from '../../core/week/types';
 import { Modal } from '../components/Modal';
+import { PanelToggle } from '../components/PanelToggle';
 import wrenchIcon from '../../assets/icons/wrench.png';
 
 interface WeeklyStaffEditorProps {
@@ -32,14 +33,10 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
   return (
     <section className="panel wide">
       <div className="panelHeader">
-        <div>
-          <h2>Caregivers</h2>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <h2>Caregivers</h2>
+        <div className="headerActions">
           {onToggleOpen && (
-            <button className="secondaryButton" type="button" onClick={onToggleOpen}>
-              {isOpen ? '▾' : '▸'}
-            </button>
+            <PanelToggle isOpen={!!isOpen} onToggle={onToggleOpen} />
           )}
         </div>
       </div>
@@ -57,9 +54,20 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                   type="button"
                   className="primaryButton"
                   onClick={onAddStaff}
-                  style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+                  style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    padding: 0, 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    fontSize: '1.4rem',
+                    lineHeight: 1,
+                    margin: '0 0 0 auto'
+                  }}
                 >
-                  Add
+                  <span style={{ marginTop: '-2px' }}>+</span>
                 </button>
               </th>
             </tr>
@@ -70,7 +78,7 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                 key={s.id}
                 style={{
                   opacity: s.isActive === false ? 0.5 : 1,
-                  background: openActionId === s.id ? '#eef4ff' : 'transparent',
+                  background: openActionId === s.id ? 'var(--color-secondary-bg)' : 'transparent',
                 }}
               >
                 <td>{s.label}</td>
@@ -83,22 +91,7 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                 ))}
                 <td style={{ position: 'relative', textAlign: 'right', overflow: 'visible' }}>
                   {openActionId === s.id && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        right: '38px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        display: 'flex',
-                        gap: '4px',
-                        padding: '2px 4px',
-                        border: '1px solid #dfe7f3',
-                        borderRadius: '8px',
-                        background: '#ffffff',
-                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.12)',
-                        zIndex: 5,
-                      }}
-                    >
+                    <div className="actionMenu">
                       <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUpdateStaff(s.id, { isActive: s.isActive !== false ? false : true }); setOpenActionId(null); }}>
                         {s.isActive === false ? 'Activate' : 'Deactivate'}
                       </button>
@@ -128,17 +121,18 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                       height: '30px',
                       padding: 0,
                       borderRadius: '9999px',
-                      border: '1px solid #3b82f6',
-                      background: '#3b82f6',
-                      color: '#ffffff',
+                      border: 'none',
+                      background: 'var(--color-secondary-button)',
+                      color: 'var(--color-secondary-text)',
                       display: 'inline-flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.95rem',
-                      lineHeight: 1,
+                      gap: '3px',
                     }}
                   >
-                    <img src={wrenchIcon} alt="" aria-hidden="true" style={{ width: '16px', height: '16px', display: 'block', filter: 'brightness(0) invert(1)' }} />
+                    <div style={{ width: '12px', height: '2px', background: 'var(--color-secondary-text)', borderRadius: '1px' }} />
+                    <div style={{ width: '12px', height: '2px', background: 'var(--color-secondary-text)', borderRadius: '1px' }} />
                   </button>
                 </td>
               </tr>

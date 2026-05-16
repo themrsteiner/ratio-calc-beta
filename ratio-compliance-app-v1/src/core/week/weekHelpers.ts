@@ -1,3 +1,4 @@
+import { TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS } from '../standards/builtInTexasLicensedChildCareHome';
 import { 
   type StudentSchedule, 
   type Weekday, 
@@ -26,7 +27,7 @@ export function createEmptyWeek(mondayDate: string, label: string): RatioSchedul
     incrementMinutes: 15,
     students: [],
     staff: [],
-    standards: null,
+    standards: TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS,
   };
 }
 
