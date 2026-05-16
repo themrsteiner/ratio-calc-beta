@@ -67,7 +67,9 @@ function calculateAgeMixForInterval(
 ): CanonicalAgeMix {
   const mix: CanonicalAgeMix = { ...EMPTY_AGE_MIX };
 
+  console.log('Calculating age mix for', students.length, 'students');
   for (const student of students) {
+    console.log('Checking student:', student.label, 'Interval:', interval);
     if (!timeRangeOverlapsInterval(student.arrivalTime, student.departureTime, interval)) {
       continue;
     }

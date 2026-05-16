@@ -7,28 +7,47 @@ interface DailyAggregateTimelineProps {
 }
 
 export const DailyAggregateTimeline: React.FC<DailyAggregateTimelineProps> = ({ intervals }) => {
-  // Find max values for scaling
-  const maxChildren = Math.max(...intervals.map(i => i.totalChildren), 1);
-  const maxCaregivers = Math.max(...intervals.map(i => Math.max(i.scheduledCaregivers, i.required.requiredCaregivers ?? 0)), 1);
-
   return (
-    <div className="aggregateTimeline">
-      <div className="timelineGrid">
+    <div className="aggregateTimeline" style={{ height: 'auto', minHeight: '150px' }}>
+      <div className="timelineGrid" style={{ display: 'flex' }}>
         {intervals.map((interval, idx) => (
-          <div key={idx} className={`timelineInterval status-${interval.status}`}>
-            <div className="barStack">
-              <div 
-                className="bar childrenBar" 
-                style={{ height: `${(interval.totalChildren / maxChildren) * 100}%` }}
-                title={`${interval.totalChildren} children at ${formatTime(interval.startTime)}`}
-              />
-              <div 
-                className="bar staffBar" 
-                style={{ height: `${(interval.scheduledCaregivers / maxCaregivers) * 100}%` }}
-                title={`${interval.scheduledCaregivers} staff at ${formatTime(interval.startTime)}`}
-              />
+          <div key={idx} style={{ flex: 1, padding: '2px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', minHeight: '120px' }}>
+              {Array.from({ length: interval.totalChildren }).map((_, i) => {
+                // Determine if compliant
+                const isCompliant = interval.status === 'compliant' || interval.status === 'overstaffed';
+                
+                // If compliant, fill all. If not, fill based on how many kids per staff.
+                // Assuming standard 1:5 ratio for this logic.
+                const coveredCount = isCompliant ? interval.totalChildren : interval.scheduledCaregivers * 5;
+                const isCovered = i < coveredCount;
+                
+                return (
+                  <div 
+                    key={i} 
+                    style={{ 
+                      width: '12px', 
+                      height: '12px', 
+                      border: '1.5px solid #3b82f6', 
+                      background: isCovered ? '#10b981' : 'transparent',
+                      borderRadius: '3px' 
+                    }} 
+                    title={`Student ${i + 1}`} 
+                  />
+                );
+              })}
+
+              {Array.from({ length: interval.scheduledCaregivers }).map((_, i) => (
+                <div key={i} style={{ width: '12px', height: '12px', background: '#10b981', borderRadius: '2px' }} title={`Caregiver ${i + 1}`} />
+              ))}
             </div>
-            {idx % 4 === 0 && <span className="timeLabel">{formatTime(interval.startTime)}</span>}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', marginTop: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '4px' }}>
+        {intervals.map((interval, idx) => (
+          <div key={idx} style={{ flex: 1, textAlign: 'center' }}>
+            {idx % 4 === 0 && <span style={{ fontSize: '0.65rem', color: '#64748b' }}>{formatTime(interval.startTime)}</span>}
           </div>
         ))}
       </div>

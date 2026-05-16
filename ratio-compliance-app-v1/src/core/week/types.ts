@@ -61,4 +61,5 @@ export type RatioScheduleWeek = {
 
 export type LoadedWeekCollection = {
   weeks: RatioScheduleWeek[];
+  timeFormat?: '12h' | '24h';
 };

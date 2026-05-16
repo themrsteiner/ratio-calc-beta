@@ -274,6 +274,16 @@ export function RatioComplianceApp() {
                   onChange={(e) => updateActiveWeek({ closeTime: e.target.value })}
                 />
               </label>
+              <label>
+                Time Format
+                <select
+                  value={workspace.timeFormat || '12h'}
+                  onChange={(e) => setWorkspace({ ...workspace, timeFormat: e.target.value as '12h' | '24h' })}
+                >
+                  <option value="12h">AM/PM</option>
+                  <option value="24h">Military (24h)</option>
+                </select>
+              </label>
               <button 
                 className="primaryButton"
                 onClick={() => updateActiveWeek({ standards: TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS })}
