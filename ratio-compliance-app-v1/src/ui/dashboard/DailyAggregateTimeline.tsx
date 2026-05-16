@@ -37,9 +37,22 @@ export const DailyAggregateTimeline: React.FC<DailyAggregateTimelineProps> = ({ 
                 );
               })}
 
-              {Array.from({ length: interval.scheduledCaregivers }).map((_, i) => (
-                <div key={i} style={{ width: '12px', height: '12px', background: '#10b981', borderRadius: '2px' }} title={`Caregiver ${i + 1}`} />
-              ))}
+              {Array.from({ length: interval.required.requiredCaregivers ?? 0 }).map((_, i) => {
+                const isScheduled = i < interval.scheduledCaregivers;
+                return (
+                  <div 
+                    key={i} 
+                    style={{ 
+                      width: '12px', 
+                      height: '12px', 
+                      border: '1.5px solid #10b981', 
+                      background: isScheduled ? '#10b981' : 'transparent',
+                      borderRadius: '2px' 
+                    }} 
+                    title={`Required Caregiver ${i + 1}`} 
+                  />
+                );
+              })}
             </div>
           </div>
         ))}
