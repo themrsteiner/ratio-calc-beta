@@ -67,9 +67,7 @@ function calculateAgeMixForInterval(
 ): CanonicalAgeMix {
   const mix: CanonicalAgeMix = { ...EMPTY_AGE_MIX };
 
-  console.log('Calculating age mix for', students.length, 'students');
   for (const student of students) {
-    console.log('Checking student:', student.label, 'Interval:', interval);
     if (!timeRangeOverlapsInterval(student.arrivalTime, student.departureTime, interval)) {
       continue;
     }
@@ -79,7 +77,6 @@ function calculateAgeMixForInterval(
       mix[ageBucket] += sanitizeCount(student.count);
 
       const warning = getAgeSourceWarning(student.ageSource, sanitizeCount(student.count));
-      console.log('Checking student:', student.label, 'Source type:', student.ageSource.type, 'Warning:', warning);
       if (warning && warning.startsWith('Manual category warning')) {
         warnings.push(`Manual Age: ${student.label}`);
       } else if (warning) {

@@ -42,6 +42,7 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
   const [batchTimeOut, setBatchTimeOut] = useState('16:00');
   const [batchAgeBucket, setBatchAgeBucket] = useState<AgeBucket>('fourYearsAndOlder');
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+  const [pendingDeleteStudentId, setPendingDeleteStudentId] = useState<string | null>(null);
 
   const editingStudent = students.find(s => s.id === editingId);
 
@@ -86,7 +87,8 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
         </div>
       </div>
 
-      {isOpen && <div className="tableWrap">
+      <div className={`panelBody ${isOpen ? 'open' : 'closed'}`} aria-hidden={!isOpen}>
+      <div className="tableWrap">
         <table className="dataTable weeklyTable">
           <thead>
             <tr>
@@ -151,9 +153,7 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
                       <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (window.confirm('Are you sure you want to remove this student?')) {
-                          onRemoveStudent(student.id);
-                        }
+                        setPendingDeleteStudentId(student.id);
                         setOpenActionId(null);
                       }}>
                         Delete
@@ -192,7 +192,8 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
             ))}
           </tbody>
         </table>
-      </div>}
+      </div>
+      </div>
 
       {isOpen && <Modal isOpen={isAdding} onClose={() => setIsAdding(false)} title="Add Student">
         <div className="formGrid">
@@ -353,6 +354,30 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
           </div>
         )}
       </Modal>}
+
+      <Modal
+        isOpen={pendingDeleteStudentId !== null}
+        onClose={() => setPendingDeleteStudentId(null)}
+        title="Remove Student"
+      >
+        <p style={{ marginTop: 0 }}>
+          Are you sure you want to remove this student?
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <button className="secondaryButton" onClick={() => setPendingDeleteStudentId(null)}>
+            Cancel
+          </button>
+          <button
+            className="dangerButton"
+            onClick={() => {
+              if (pendingDeleteStudentId) onRemoveStudent(pendingDeleteStudentId);
+              setPendingDeleteStudentId(null);
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      </Modal>
     </section>
   );
 };

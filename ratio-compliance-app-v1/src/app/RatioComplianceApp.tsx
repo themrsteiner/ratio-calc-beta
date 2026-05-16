@@ -45,7 +45,9 @@ function CollapsibleSection({
           <PanelToggle isOpen={isOpen} onToggle={onToggle} />
         </div>
       </div>
-      {isOpen && children}
+      <div className={`panelBody ${isOpen ? 'open' : 'closed'}`} aria-hidden={!isOpen}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -155,7 +157,6 @@ export function RatioComplianceApp() {
 
   const activeDayResult = dailyResults[activeDay];
   const isHourInterval = (startTime: string) => Number(startTime.split(':')[1] ?? '0') === 0;
-  console.log('Daily Warnings:', activeDayResult.warnings);
   const weekSummary = useMemo(() => summarizeWeek(daySummaries), [daySummaries]);
   const weeklyPeakHeights = useMemo(() => {
     let maxChildren = 0;
@@ -485,16 +486,23 @@ export function RatioComplianceApp() {
                           <div
                             key={idx}
                             className={`miniTimelineInterval ${isHourInterval(interval.startTime) ? 'hourMarker' : ''}`}
+                            style={{ animationDelay: `${idx * 10}ms` }}
                           >
                             <div className="miniTimelineDotStack">
                               {Array.from({ length: interval.totalChildren }).map((_, i) => {
+                                const requiredCaregivers = interval.required.requiredCaregivers ?? 0;
                                 const isCompliant = !activeWeek.standards || interval.status === 'compliant' || interval.status === 'overstaffed';
-                                const coveredCount = isCompliant ? interval.totalChildren : interval.scheduledCaregivers * 5;
+                                const coveredCount = isCompliant
+                                  ? interval.totalChildren
+                                  : requiredCaregivers > 0
+                                    ? Math.floor(interval.totalChildren * Math.min(1, interval.scheduledCaregivers / requiredCaregivers))
+                                    : 0;
                                 const isCovered = i < coveredCount;
                                 return (
                                   <div
                                     key={i}
                                     className={`dot student ${isCovered ? 'active' : 'alert'}`}
+                                    style={{ animationDelay: `${idx * 10 + i * 6}ms` }}
                                   />
                                 );
                               })}
@@ -514,6 +522,7 @@ export function RatioComplianceApp() {
                           <div
                             key={idx}
                             className={`miniTimelineInterval ${isHourInterval(interval.startTime) ? 'hourMarker' : ''}`}
+                            style={{ animationDelay: `${idx * 10}ms` }}
                           >
                             <div className="miniTimelineDotStack">
                               {Array.from({ length: activeWeek.standards ? (interval.required.requiredCaregivers ?? 0) : interval.scheduledCaregivers }).map((_, i) => {
@@ -522,6 +531,7 @@ export function RatioComplianceApp() {
                                   <div
                                     key={i}
                                     className={`dot staff ${isScheduled ? 'active' : 'alert'}`}
+                                    style={{ animationDelay: `${idx * 10 + i * 6}ms` }}
                                   />
                                 );
                               })}
@@ -536,12 +546,12 @@ export function RatioComplianceApp() {
                     <td style={{ height: '20px' }}>
                       <div className="miniTimelineBarContainer">
                         {activeDayResult.intervals.map((interval: ComplianceInterval, idx: number) => {
-                          const isAlert = !!activeWeek.standards && ((interval.totalChildren > (interval.status === 'compliant' || interval.status === 'overstaffed' ? interval.totalChildren : interval.scheduledCaregivers * 5)) ||
-                                          ((interval.required.requiredCaregivers ?? 0) > interval.scheduledCaregivers));
+                          const isAlert = !!activeWeek.standards && interval.status === 'gap';
                           return (
                             <div
                               key={idx}
                               className={`miniTimelineInterval ${isAlert ? 'alertShade' : ''}`}
+                              style={{ animationDelay: `${idx * 10}ms` }}
                             >
                               <div
                                 style={{
@@ -561,7 +571,7 @@ export function RatioComplianceApp() {
                     <td style={{ height: '20px' }}>
                       <div className="miniTimelineBarContainer">
                         {activeDayResult.intervals.map((interval: ComplianceInterval, idx: number) => (
-                          <div key={idx} className="miniTimelineInterval">
+                          <div key={idx} className="miniTimelineInterval" style={{ animationDelay: `${idx * 10}ms` }}>
                             {isHourInterval(interval.startTime) && (
                               <span style={{ fontSize: '0.65rem', color: '#64748b' }}>
                                 {formatTime(interval.startTime)}

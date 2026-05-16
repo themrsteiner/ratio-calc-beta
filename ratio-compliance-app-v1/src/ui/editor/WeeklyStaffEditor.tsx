@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StaffWeeklySchedule, Weekday, WEEKDAYS } from '../../core/week/types';
+import { StaffWeeklySchedule, StaffDaySchedule, Weekday, WEEKDAYS } from '../../core/week/types';
 import { Modal } from '../components/Modal';
 import { PanelToggle } from '../components/PanelToggle';
 import wrenchIcon from '../../assets/icons/wrench.png';
@@ -8,7 +8,7 @@ interface WeeklyStaffEditorProps {
   staff: StaffWeeklySchedule[];
   onAddStaff: () => void;
   onUpdateStaff: (id: string, patch: Partial<StaffWeeklySchedule>) => void;
-  onUpdateStaffDay: (staffId: string, day: Weekday, patch: any) => void;
+  onUpdateStaffDay: (staffId: string, day: Weekday, schedules: StaffDaySchedule[]) => void;
   onRemoveStaff: (id: string) => void;
   isOpen?: boolean;
   onToggleOpen?: () => void;
@@ -25,6 +25,7 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+  const [pendingDeleteStaffId, setPendingDeleteStaffId] = useState<string | null>(null);
   const editingStaff = staff.find(s => s.id === editingId);
 
   const activeStaff = staff.filter(s => s.isActive !== false);
@@ -41,7 +42,8 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
         </div>
       </div>
 
-      {isOpen && <div className="tableWrap">
+      <div className={`panelBody ${isOpen ? 'open' : 'closed'}`} aria-hidden={!isOpen}>
+      <div className="tableWrap">
         <table className="dataTable weeklyTable">
           <thead>
             <tr>
@@ -98,9 +100,7 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                       <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (window.confirm('Are you sure you want to remove this caregiver?')) {
-                          onRemoveStaff(s.id);
-                        }
+                        setPendingDeleteStaffId(s.id);
                         setOpenActionId(null);
                       }}>
                         Delete
@@ -139,7 +139,8 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
             ))}
           </tbody>
         </table>
-      </div>}
+      </div>
+      </div>
 
       {isOpen && <Modal isOpen={!!editingId} onClose={() => setEditingId(null)} title="Edit Caregiver">
         {editingStaff && (
@@ -175,6 +176,30 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
           </div>
         )}
       </Modal>}
+
+      <Modal
+        isOpen={pendingDeleteStaffId !== null}
+        onClose={() => setPendingDeleteStaffId(null)}
+        title="Remove Caregiver"
+      >
+        <p style={{ marginTop: 0 }}>
+          Are you sure you want to remove this caregiver?
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <button className="secondaryButton" onClick={() => setPendingDeleteStaffId(null)}>
+            Cancel
+          </button>
+          <button
+            className="dangerButton"
+            onClick={() => {
+              if (pendingDeleteStaffId) onRemoveStaff(pendingDeleteStaffId);
+              setPendingDeleteStaffId(null);
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      </Modal>
     </section>
   );
 };

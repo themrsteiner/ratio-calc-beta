@@ -367,6 +367,26 @@ button {
   flex-shrink: 0;
 }
 
+.panelBody {
+  transform-origin: top;
+  transition: max-height 220ms cubic-bezier(0.2, 0, 0, 1), opacity 180ms ease, transform 220ms cubic-bezier(0.2, 0, 0, 1), margin-top 220ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: max-height, opacity, transform;
+}
+
+.panelBody.open {
+  max-height: 4000px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.panelBody.closed {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .dataTable {
   width: 100%;
   border-collapse: collapse;
@@ -597,6 +617,7 @@ button {
   justify-content: center;
   align-items: flex-end;
   height: 100%;
+  animation: intervalReveal 200ms ease both;
 }
 
 .miniTimelineDotStack {
@@ -613,6 +634,7 @@ button {
   height: 10px;
   border-radius: 9999px;
   flex-shrink: 0;
+  animation: dotReveal 160ms ease both;
 }
 
 .dot.student { border: 1.5px solid var(--color-student); }
@@ -627,6 +649,37 @@ button {
 
 .alertShade {
   background: var(--color-alert-bg) !important;
+}
+
+@keyframes intervalReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dotReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panelBody,
+  .miniTimelineInterval,
+  .dot {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* Toggle Group */

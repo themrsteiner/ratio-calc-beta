@@ -6,7 +6,8 @@ import {
   WEEKDAYS,
   StudentWeeklySchedule,
   StaffWeeklySchedule,
-  type StudentSchedule
+  type StudentSchedule,
+  type StaffDaySchedule
 } from '../../core/week/types';
 import { createEmptyWeek, getInitialStudentSchedule, createInitialStaffDaySchedule } from '../../core/week/weekHelpers';
 
@@ -191,7 +192,7 @@ export function useWorkspace() {
     });
   }, [activeWeek, updateActiveWeek]);
 
-  const updateStaffDay = useCallback((staffId: string, day: Weekday, patch: any) => {
+  const updateStaffDay = useCallback((staffId: string, day: Weekday, schedules: StaffDaySchedule[]) => {
     setWorkspace(current => {
       const weekIdx = current.weeks.findIndex(w => w.id === activeWeekId);
       if (weekIdx === -1) return current;
@@ -200,7 +201,7 @@ export function useWorkspace() {
       week.staff = week.staff.map(s => {
         if (s.id !== staffId) return s;
         const newDays = { ...s.days };
-        newDays[day] = newDays[day].map(sched => ({ ...sched, ...patch }));
+        newDays[day] = schedules;
         return { ...s, days: newDays };
       });
       newWeeks[weekIdx] = week;
