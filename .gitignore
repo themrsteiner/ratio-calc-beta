@@ -1,0 +1,5 @@
+/ratio-compliance-app-v1/dist/
+/ratio-compliance-app-v1/node_modules/
+/ratio-compliance-app-v1/dev_output.log
+/ratio-compliance-app-v1/*.log
+/ratio-compliance-app-v1/tsconfig.tsbuildinfo

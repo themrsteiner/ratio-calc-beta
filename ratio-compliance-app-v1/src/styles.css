@@ -80,6 +80,15 @@ button {
   background: #264ed8;
 }
 
+.weekList li.archived {
+  background: rgba(255, 255, 255, 0.08);
+  color: #b7c3db;
+}
+
+.weekList li.archived .weekDate {
+  color: #9aa9c7;
+}
+
 .weekItemInfo {
   display: flex;
   flex-direction: column;
@@ -177,8 +186,8 @@ button {
 .summaryCardContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .summaryGroup h4 {
@@ -202,12 +211,12 @@ button {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .daySummaryCard:hover {
@@ -227,21 +236,31 @@ button {
 
 .dayName {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .dayMetrics {
   display: flex;
   flex-direction: column;
-  font-size: 0.85rem;
-  color: #475569;
+  font-size: 0.84rem;
+  color: #334155;
+  gap: 4px;
+  line-height: 1.25;
+}
+
+.dayMetrics strong {
+  font-size: 0.95rem;
+  color: #0f172a;
 }
 
 .dayStatus {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   color: #64748b;
+  letter-spacing: 0.05em;
 }
 
 .hasGaps .dayStatus {
@@ -421,11 +440,11 @@ h2 {
 .heroCard {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 24px;
-  padding: 18px;
+  padding: 12px;
   backdrop-filter: blur(10px);
 }
 
@@ -433,7 +452,7 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 10px 12px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.12);
 }
@@ -443,7 +462,7 @@ h2 {
 }
 
 .metric strong {
-  font-size: 2rem;
+  font-size: 1.6rem;
 }
 
 .contentGrid {
@@ -703,3 +722,11 @@ select:focus {
     display: none;
   }
 }
+
+.miniTimelineTable { background: transparent !important; }
+.miniTimelineTable tbody,
+.miniTimelineTable tr,
+.miniTimelineTable td { background: transparent !important; }
+.miniTimelineTable td { padding: 0 !important; }
+.miniTimelineTable td:first-child { padding: 0 6px !important; }
+

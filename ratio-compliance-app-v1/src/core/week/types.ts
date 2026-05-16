@@ -57,6 +57,7 @@ export type RatioScheduleWeek = {
   standards: RatioStandardSet | null;
   notes?: string;
   verifiedStudentIds?: string[];
+  isArchived?: boolean;
 };
 
 export type LoadedWeekCollection = {

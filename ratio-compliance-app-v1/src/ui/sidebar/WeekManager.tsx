@@ -8,8 +8,7 @@ interface WeekManagerProps {
   onAddWeek: (mondayDate: string, label: string) => void;
   onDuplicateWeek: (id: string) => void;
   onRemoveWeek: (id: string) => void;
-  onExportWorkspace: () => void;
-  onImportWorkspace: () => void;
+  onToggleWeekArchived: (id: string) => void;
 }
 
 export const WeekManager: React.FC<WeekManagerProps> = ({
@@ -19,9 +18,13 @@ export const WeekManager: React.FC<WeekManagerProps> = ({
   onAddWeek,
   onDuplicateWeek,
   onRemoveWeek,
-  onExportWorkspace,
-  onImportWorkspace,
+  onToggleWeekArchived,
 }) => {
+  const orderedWeeks = [
+    ...workspace.weeks.filter((w) => !w.isArchived),
+    ...workspace.weeks.filter((w) => w.isArchived),
+  ];
+
   return (
     <aside className="sidebar">
       <div className="sidebarHeader">
@@ -34,14 +37,14 @@ export const WeekManager: React.FC<WeekManagerProps> = ({
             onAddWeek(nextMon.toISOString().slice(0, 10), `Week ${workspace.weeks.length + 1}`);
           }}
         >
-          + Week
+          +
         </button>
       </div>
       <ul className="weekList">
-        {workspace.weeks.map(week => (
+        {orderedWeeks.map(week => (
           <li 
             key={week.id} 
-            className={activeWeekId === week.id ? 'active' : ''}
+            className={`${activeWeekId === week.id ? 'active' : ''} ${week.isArchived ? 'archived' : ''}`.trim()}
             onClick={() => onSelectWeek(week.id)}
           >
             <div className="weekItemInfo">
@@ -49,6 +52,12 @@ export const WeekManager: React.FC<WeekManagerProps> = ({
               <span className="weekDate">{week.weekStartDate}</span>
             </div>
             <div className="weekItemActions">
+              <button 
+                title={week.isArchived ? 'Unarchive' : 'Archive'}
+                onClick={(e) => { e.stopPropagation(); onToggleWeekArchived(week.id); }}
+              >
+                {week.isArchived ? 'U' : 'A'}
+              </button>
               <button 
                 title="Duplicate" 
                 onClick={(e) => { e.stopPropagation(); onDuplicateWeek(week.id); }}
@@ -66,14 +75,6 @@ export const WeekManager: React.FC<WeekManagerProps> = ({
           </li>
         ))}
       </ul>
-      <div className="sidebarFooter">
-        <button className="secondaryButton fullWidth" onClick={onExportWorkspace}>
-          Export Workspace
-        </button>
-        <button className="secondaryButton fullWidth" onClick={onImportWorkspace}>
-          Import Workspace
-        </button>
-      </div>
     </aside>
   );
 };

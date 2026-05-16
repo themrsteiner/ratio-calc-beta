@@ -82,6 +82,15 @@ export function useWorkspace() {
     }
   }, [activeWeekId, workspace.weeks]);
 
+  const toggleWeekArchived = useCallback((weekId: string) => {
+    setWorkspace((current) => ({
+      ...current,
+      weeks: current.weeks.map((w) =>
+        w.id === weekId ? { ...w, isArchived: !w.isArchived } : w
+      ),
+    }));
+  }, []);
+
   const addStudent = useCallback(() => {
     const defaultSchedule = getInitialStudentSchedule();
     const defaultId = 'default';
@@ -206,6 +215,7 @@ export function useWorkspace() {
     addWeek,
     duplicateWeek,
     removeWeek,
+    toggleWeekArchived,
     updateActiveWeek,
     addStudent,
     addBatchStudents,

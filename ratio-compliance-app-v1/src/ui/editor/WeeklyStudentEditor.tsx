@@ -3,6 +3,7 @@ import { StudentWeeklySchedule, Weekday, WEEKDAYS } from '../../core/week/types'
 import { AGE_BUCKET_LABELS, AgeBucket } from '../../core/standards/types';
 import { getInitialStudentSchedule } from '../../core/week/weekHelpers';
 import { Modal } from '../components/Modal';
+import wrenchIcon from '../../assets/icons/wrench.png';
 
 interface WeeklyStudentEditorProps {
   students: StudentWeeklySchedule[];
@@ -11,6 +12,8 @@ interface WeeklyStudentEditorProps {
   onUpdateStudent: (id: string, patch: Partial<StudentWeeklySchedule>) => void;
   onUpdateStudentDay: (studentId: string, day: Weekday, patch: any) => void;
   onRemoveStudent: (id: string) => void;
+  isOpen?: boolean;
+  onToggleOpen?: () => void;
 }
 
 const AGE_BUCKETS: AgeBucket[] = [
@@ -26,6 +29,8 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
   onUpdateStudent,
   onUpdateStudentDay,
   onRemoveStudent,
+  isOpen = true,
+  onToggleOpen,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -35,6 +40,7 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
   const [batchTimeIn, setBatchTimeIn] = useState('08:00');
   const [batchTimeOut, setBatchTimeOut] = useState('16:00');
   const [batchAgeBucket, setBatchAgeBucket] = useState<AgeBucket>('fourYearsAndOlder');
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const editingStudent = students.find(s => s.id === editingId);
 
@@ -72,15 +78,16 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
     <section className="panel wide">
       <div className="panelHeader">
         <div>
-          <h2>Children (Weekly)</h2>
-          <p>Manage student schedules across the entire week.</p>
+          <h2>Children</h2>
         </div>
-        <div className="buttonRow">
-          <button type="button" className="primaryButton" onClick={() => setIsAdding(true)}>+</button>
-        </div>
+        {onToggleOpen && (
+          <button className="secondaryButton" type="button" onClick={onToggleOpen}>
+            {isOpen ? '▾' : '▸'}
+          </button>
+        )}
       </div>
 
-      <div className="tableWrap">
+      {isOpen && <div className="tableWrap">
         <table className="dataTable weeklyTable">
           <thead>
             <tr>
@@ -89,12 +96,27 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
               {WEEKDAYS.map(d => (
                 <th key={d}>{d.charAt(0).toUpperCase() + d.slice(0, 3)}</th>
               ))}
-              <th></th>
+              <th style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  className="primaryButton"
+                  onClick={() => setIsAdding(true)}
+                  style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+                >
+                  Add
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
             {[...students.filter(s => s.isActive !== false), ...students.filter(s => s.isActive === false)].map((student) => (
-              <tr key={student.id} style={{ opacity: student.isActive === false ? 0.5 : 1 }}>
+              <tr
+                key={student.id}
+                style={{
+                  opacity: student.isActive === false ? 0.5 : 1,
+                  background: openActionId === student.id ? '#eef4ff' : 'transparent',
+                }}
+              >
                 <td>{student.label}</td>
                 <td style={{ fontSize: '0.8rem' }}>
                   {student.ageSource.type === 'dateOfBirth' 
@@ -110,24 +132,71 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
                     ))}
                   </td>
                 ))}
-                <td>
-                  <button type="button" className="secondaryButton" onClick={() => onUpdateStudent(student.id, { isActive: student.isActive !== false ? false : true })}>
-                    {student.isActive === false ? 'Activate' : 'Deactivate'}
+                <td style={{ position: 'relative', textAlign: 'right' }}>
+                  {openActionId === student.id && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '38px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        display: 'flex',
+                        gap: '4px',
+                        padding: '2px 4px',
+                        border: '1px solid #dfe7f3',
+                        borderRadius: '8px',
+                        background: '#ffffff',
+                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.12)',
+                        zIndex: 5,
+                      }}
+                    >
+                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => { onUpdateStudent(student.id, { isActive: student.isActive !== false ? false : true }); setOpenActionId(null); }}>
+                        {student.isActive === false ? 'Activate' : 'Deactivate'}
+                      </button>
+                      <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => {
+                        if (window.confirm('Are you sure you want to remove this student?')) {
+                          onRemoveStudent(student.id);
+                        }
+                        setOpenActionId(null);
+                      }}>
+                        Delete
+                      </button>
+                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => { setEditingId(student.id); setOpenActionId(null); }}>
+                        Edit
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="secondaryButton"
+                    aria-label="Settings"
+                    title="Settings"
+                    onClick={() => setOpenActionId((current) => (current === student.id ? null : student.id))}
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      padding: 0,
+                      borderRadius: '9999px',
+                      border: '1px solid #3b82f6',
+                      background: '#3b82f6',
+                      color: '#ffffff',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.95rem',
+                      lineHeight: 1,
+                    }}
+                  >
+                    <img src={wrenchIcon} alt="" aria-hidden="true" style={{ width: '16px', height: '16px', display: 'block', filter: 'brightness(0) invert(1)' }} />
                   </button>
-                  <button type="button" className="secondaryButton" onClick={() => setEditingId(student.id)}>Edit</button>
-                  <button type="button" className="dangerButton" onClick={() => {
-                    if (window.confirm('Are you sure you want to remove this student?')) {
-                      onRemoveStudent(student.id);
-                    }
-                  }}>&times;</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
 
-      <Modal isOpen={isAdding} onClose={() => setIsAdding(false)} title="Add Student">
+      {isOpen && <Modal isOpen={isAdding} onClose={() => setIsAdding(false)} title="Add Student">
         <div className="formGrid">
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <button 
@@ -169,12 +238,68 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
           <label>Out: <input type="time" value={batchTimeOut} onChange={e => setBatchTimeOut(e.target.value)} /></label>
           <button className="primaryButton" onClick={handleCreate}>Create</button>
         </div>
-      </Modal>
+      </Modal>}
 
-      <Modal isOpen={!!editingId} onClose={() => setEditingId(null)} title="Edit Student">
+      {isOpen && <Modal isOpen={!!editingId} onClose={() => setEditingId(null)} title="Edit Student">
         {editingStudent && (
           <div className="formGrid">
             <label>Name: <input value={editingStudent.label} onChange={e => onUpdateStudent(editingStudent.id, { label: e.target.value })} /></label>
+            <div style={{ margin: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
+              <h4>Age Source</h4>
+              <label style={{ marginBottom: '8px' }}>
+                Type
+                <select
+                  value={editingStudent.ageSource.type}
+                  onChange={(e) => {
+                    const nextType = e.target.value as 'dateOfBirth' | 'manualAgeBucket';
+                    if (nextType === 'dateOfBirth') {
+                      onUpdateStudent(editingStudent.id, {
+                        ageSource: { type: 'dateOfBirth', dateOfBirth: new Date().toISOString().slice(0, 10) } as any,
+                      });
+                    } else {
+                      onUpdateStudent(editingStudent.id, {
+                        ageSource: { type: 'manualAgeBucket', ageBucket: 'fourYearsAndOlder' } as any,
+                      });
+                    }
+                  }}
+                >
+                  <option value="dateOfBirth">Date of Birth</option>
+                  <option value="manualAgeBucket">Age Bucket</option>
+                </select>
+              </label>
+              {editingStudent.ageSource.type === 'dateOfBirth' ? (
+                <label>
+                  Date of Birth
+                  <input
+                    type="date"
+                    value={(editingStudent.ageSource as any).dateOfBirth || ''}
+                    onChange={(e) =>
+                      onUpdateStudent(editingStudent.id, {
+                        ageSource: { type: 'dateOfBirth', dateOfBirth: e.target.value } as any,
+                      })
+                    }
+                  />
+                </label>
+              ) : (
+                <label>
+                  Age Bucket
+                  <select
+                    value={(editingStudent.ageSource as any).ageBucket || 'fourYearsAndOlder'}
+                    onChange={(e) =>
+                      onUpdateStudent(editingStudent.id, {
+                        ageSource: { type: 'manualAgeBucket', ageBucket: e.target.value as AgeBucket } as any,
+                      })
+                    }
+                  >
+                    {AGE_BUCKETS.map((b) => (
+                      <option key={b} value={b}>
+                        {AGE_BUCKET_LABELS[b]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
             <div style={{ margin: '16px 0', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
               <h4>Schedules</h4>
               {Object.keys(editingStudent.schedules).map((id) => (
@@ -229,7 +354,7 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
             <button className="primaryButton" onClick={() => setEditingId(null)}>Done</button>
           </div>
         )}
-      </Modal>
+      </Modal>}
     </section>
   );
 };
