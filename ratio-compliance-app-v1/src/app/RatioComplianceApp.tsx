@@ -107,14 +107,6 @@ export function RatioComplianceApp() {
   const toggleSection = (key: keyof typeof openSections) =>
     setOpenSections((current) => ({ ...current, [key]: !current[key] }));
 
-  const handleResetSample = () => {
-    const sample = createSampleWeek(new Date().toISOString().slice(0, 10), 'Sample Week');
-    setWorkspace(current => ({
-      ...current,
-      weeks: current.weeks.map(w => w.id === activeWeekId ? sample : w)
-    }));
-  };
-
   const dailyResults = useMemo(() => {
     const results: Record<string, any> = {};
     WEEKDAYS.forEach(day => {
@@ -496,12 +488,6 @@ export function RatioComplianceApp() {
                 onClick={() => updateActiveWeek({ standards: TEXAS_LICENSED_CHILD_CARE_HOME_STANDARDS })}
               >
                 Load Texas Standards
-              </button>
-              <button 
-                className="secondaryButton"
-                onClick={handleResetSample}
-              >
-                Reset to Sample
               </button>
               <button 
                 className="secondaryButton"
