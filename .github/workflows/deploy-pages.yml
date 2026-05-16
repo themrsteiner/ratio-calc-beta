@@ -81,7 +81,7 @@ jobs:
 
         working-directory: ratio-compliance-app-v1
 
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
 
 
