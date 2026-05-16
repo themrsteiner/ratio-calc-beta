@@ -150,10 +150,12 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
                         zIndex: 5,
                       }}
                     >
-                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => { onUpdateStudent(student.id, { isActive: student.isActive !== false ? false : true }); setOpenActionId(null); }}>
+                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUpdateStudent(student.id, { isActive: student.isActive !== false ? false : true }); setOpenActionId(null); }}>
                         {student.isActive === false ? 'Activate' : 'Deactivate'}
                       </button>
-                      <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => {
+                      <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (window.confirm('Are you sure you want to remove this student?')) {
                           onRemoveStudent(student.id);
                         }
@@ -161,7 +163,7 @@ export const WeeklyStudentEditor: React.FC<WeeklyStudentEditorProps> = ({
                       }}>
                         Delete
                       </button>
-                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => { setEditingId(student.id); setOpenActionId(null); }}>
+                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingId(student.id); setOpenActionId(null); }}>
                         Edit
                       </button>
                     </div>

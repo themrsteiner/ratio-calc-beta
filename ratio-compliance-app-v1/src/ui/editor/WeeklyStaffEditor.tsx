@@ -99,10 +99,12 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                         zIndex: 5,
                       }}
                     >
-                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => { onUpdateStaff(s.id, { isActive: s.isActive !== false ? false : true }); setOpenActionId(null); }}>
+                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUpdateStaff(s.id, { isActive: s.isActive !== false ? false : true }); setOpenActionId(null); }}>
                         {s.isActive === false ? 'Activate' : 'Deactivate'}
                       </button>
-                      <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => {
+                      <button type="button" className="dangerButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (window.confirm('Are you sure you want to remove this caregiver?')) {
                           onRemoveStaff(s.id);
                         }
@@ -110,7 +112,7 @@ export const WeeklyStaffEditor: React.FC<WeeklyStaffEditorProps> = ({
                       }}>
                         Delete
                       </button>
-                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={() => { setEditingId(s.id); setOpenActionId(null); }}>
+                      <button type="button" className="secondaryButton" style={{ padding: '5px 8px', fontSize: '0.76rem' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingId(s.id); setOpenActionId(null); }}>
                         Edit
                       </button>
                     </div>
