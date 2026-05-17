@@ -340,6 +340,7 @@ button {
 
 .weekHeroMain {
   min-width: 0;
+  width: 100%;
 }
 
 .weekHeroTitle {
@@ -357,6 +358,7 @@ button {
 
 .weekHeroMeta p {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .weekHeroMeta p:first-child {
@@ -805,6 +807,17 @@ button {
     overflow-x: hidden;
   }
 
+  .appLayout,
+  .appShell,
+  .contentGrid,
+  .panel,
+  .weekOverview,
+  .hero,
+  .weekHero {
+    width: 100%;
+    min-width: 0;
+  }
+
   .appShell {
     padding: 14px;
   }
@@ -903,7 +916,7 @@ button {
 
   .drawerCloseButton {
     position: absolute;
-    left: 16px;
+    right: 16px;
     bottom: 16px;
     z-index: 2;
     width: 44px !important;
