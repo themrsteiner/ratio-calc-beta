@@ -280,7 +280,7 @@ export function RatioComplianceApp() {
         <div className="drawerHeader" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h3 style={{ margin: 0 }}>Menu</h3>
           <button 
-            className="secondaryButton" 
+            className="secondaryButton drawerCloseButton" 
             onClick={() => setIsDrawerOpen(false)}
             style={{ width: '32px', height: '32px', padding: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >

@@ -226,6 +226,10 @@ button {
   gap: 12px;
 }
 
+.weekSummaryGrid > * {
+  min-width: 0;
+}
+
 .daySummaryCard {
   background: var(--color-card);
   border: 1px solid var(--color-border);
@@ -238,6 +242,7 @@ button {
   gap: 12px;
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
 .daySummaryCard:hover {
@@ -893,5 +898,19 @@ button {
   .sideDrawer {
     width: min(320px, 92vw);
     right: -100vw;
+    padding-bottom: 88px;
+  }
+
+  .drawerCloseButton {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 2;
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .drawerFooter {
+    margin-bottom: 8px;
   }
 }
